@@ -411,6 +411,14 @@ And you can use the import flag to import any other file (for example with some 
 
      _i69n_import: package:my_app/my_friend_interface.dart,package:my_app/my_number_formatting.dart
 
+# Code Coverage
+
+To run tests with code coverage, use the provided script:
+
+    ./tool/coverage.sh
+
+This script runs the tests and generates an LCOV report at `coverage/lcov.info`.
+
 # Example
 
 See [example](example). Clone the package repository ([https://github.com/fnx-io/i69n](https://github.com/fnx-io/i69n)) and run:
