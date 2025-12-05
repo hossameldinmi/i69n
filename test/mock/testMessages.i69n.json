@@ -5,24 +5,24 @@
     "_i69n": "flag",
     "ok": "OK",
     "done": "DONE",
-    "letsGo": "Let's go! # escaped automatically",
+    "letsGo": "Let's go!",
     "ordinalNumber(int n)": "${_ordinal(n, one: '1st', two: '2nd', few: '3rd', other: '${n}th')}"
   },
   "invoice": {
     "_i69n": "noescape,nomap",
     "create": "Create invoice",
     "delete": "Delete  invoice",
-    "help": "Use this function\nto generate new invoices and stuff.\nAwesome!",
-    "count(int cnt)": "You have created $cnt ${_plural(cnt, one:'invoice', many:'invoices')}",
-    "something": "Let's go!"
+    "help": "Use this function to generate new invoices and stuff. Awesome!",
+    "count(int cnt)": "You have created $cnt ${_plural(cnt, one:'invoice', many:'invoices')}.",
+    "something": "Let\\'s go!"
   },
   "apples": {
     "_apples(int cnt)": "${_plural(cnt, zero: 'no apples', one:'$cnt apple', many:'$cnt apples')}",
-    "count(int cnt)": "You have eaten ${_apples(cnt)}",
+    "count(int cnt)": "You have eaten ${_apples(cnt)}.",
     "problematic(int count)": "${_plural(count, zero:'didn\\'t find any tasks', one:'found 1 task', other: 'found $count tasks')}",
     "anotherProblem": "here\nthere",
     "quotes": "Hello \\\"world\\\"!",
-    "quotes2": "Hello \"world\"!"
+    "quotes2": "Hello \\\"world\\\"!"
   },
   "friends": {
     "michael": {

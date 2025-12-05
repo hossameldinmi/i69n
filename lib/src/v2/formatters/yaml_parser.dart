@@ -5,8 +5,11 @@ import 'package:i69n/src/v2/shared/node.dart';
 import 'package:yaml/yaml.dart';
 
 class YamlParser implements BaseParser {
+  final String filePath;
+
+  YamlParser(this.filePath);
   @override
-  Future<LocaleFile> parse(String filePath) async {
+  Future<LocaleFile> parse() async {
     final file = File(filePath);
     final String yamlString = await file.readAsString();
     final yamlMap = (loadYaml(yamlString) as YamlMap);
