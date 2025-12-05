@@ -5,7 +5,7 @@ import 'package:i69n/src/v2/formatters/json_parser.dart';
 import 'package:i69n/src/v2/formatters/yaml_parser.dart';
 import 'package:i69n/src/v2/shared/node.dart';
 
-Future<void> testParsing(String fileName, void Function(BaseParser parser, LocaleFile file) test) async {
+Future<void> testParsing(String fileName, void Function(BaseParser parser, LocaleFile actual) test) async {
   final parsers = [
     YamlParser('test/mock/$fileName.yaml'),
     JsonParser('test/mock/$fileName.json'),

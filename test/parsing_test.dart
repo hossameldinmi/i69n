@@ -16,7 +16,7 @@ void main() {
             Node(StringNodeKey('done'), StringNodeValue('DONE')),
             Node(StringNodeKey('letsGo'), StringNodeValue('Let\'s go!')),
             Node(ParametrizedNodeKey('ordinalNumber', [Parameter('n', 'int')]),
-                StringNodeValue("\${_ordinal(n, one: '1st', two: '2nd', few: '3rd', other: '\${n}th')}")),
+                GrammaticalNumberNodeValue("\${_ordinal(n, one: '1st', two: '2nd', few: '3rd', other: '\${n}th')}")),
           ]),
         ),
         Node(
@@ -29,7 +29,7 @@ void main() {
                 StringNodeValue('Use this function to generate new invoices and stuff. Awesome!')),
             Node(
               ParametrizedNodeKey('count', [Parameter('cnt', 'int')]),
-              StringNodeValue("You have created \$cnt \${_plural(cnt, one:'invoice', many:'invoices')}."),
+              GrammaticalNumberNodeValue("You have created \$cnt \${_plural(cnt, one:'invoice', many:'invoices')}."),
             ),
             Node(StringNodeKey('something'), StringNodeValue(r"Let\'s go!")),
           ]),
@@ -40,7 +40,8 @@ void main() {
             [
               Node(
                 ParametrizedNodeKey('_apples', [Parameter('cnt', 'int')]),
-                StringNodeValue("\${_plural(cnt, zero: 'no apples', one:'\$cnt apple', many:'\$cnt apples')}"),
+                GrammaticalNumberNodeValue(
+                    "\${_plural(cnt, zero: 'no apples', one:'\$cnt apple', many:'\$cnt apples')}"),
               ),
               Node(
                 ParametrizedNodeKey('count', [Parameter('cnt', 'int')]),
@@ -48,7 +49,7 @@ void main() {
               ),
               Node(
                 ParametrizedNodeKey('problematic', [Parameter('count', 'int')]),
-                StringNodeValue(
+                GrammaticalNumberNodeValue(
                     "\${_plural(count, zero:'didn\\'t find any tasks', one:'found 1 task', other: 'found \$count tasks')}"),
               ),
               Node(StringNodeKey('anotherProblem'), StringNodeValue('here\nthere')),

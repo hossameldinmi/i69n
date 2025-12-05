@@ -63,6 +63,8 @@ abstract class NodeValue extends Equatable {
   const NodeValue();
   factory NodeValue.create(dynamic value) {
     if (value is String) {
+      final grammatical = GrammaticalNumberNodeValue.create(value);
+      if (grammatical != null) return grammatical;
       return StringNodeValue(value);
     }
     if (value is List<String>) {
@@ -153,14 +155,8 @@ class Node extends NodeValue {
     if (configNode != null) {
       return configNode;
     }
-    if (value is String) {
-      return Node(nodeKey, StringNodeValue(value));
-    }
-    if (value is Map) {
-      return Node(nodeKey, NodeListNodeValue.create(value));
-    }
-
-    throw Exception('Unsupported value type: ${value.runtimeType}');
+    final nodeValue = NodeValue.create(value);
+    return Node(nodeKey, nodeValue);
   }
 
   @override
@@ -188,6 +184,22 @@ class StringListNodeValue extends NodeValue {
       return StringListNodeValue(value);
     }
     throw Exception('Unsupported value type: ${value.runtimeType}');
+  }
+
+  @override
+  List<Object> get props => [value];
+}
+
+class GrammaticalNumberNodeValue extends NodeValue {
+  final String value;
+  GrammaticalNumberNodeValue(this.value);
+
+  static GrammaticalNumberNodeValue? create(dynamic value) {
+    final regex = RegExp(r'plural|ordinal|cardinal');
+    if (regex.hasMatch(value)) {
+      return GrammaticalNumberNodeValue(value);
+    }
+    return null;
   }
 
   @override
