@@ -1,42 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:collection/collection.dart';
-
-class LocaleFile extends Equatable {
-  final Metadata metadata;
-  final List<Node> nodes;
-  final List<Import> imports;
-  LocaleFile(this.metadata, this.nodes, this.imports);
-
-  factory LocaleFile.parseMap(Map<dynamic, dynamic> map) {
-    final nodes = map.entries.map((entry) => Node.create(entry.key, entry.value)).toList();
-    final configNodes = _getConfigNodes(nodes);
-    final imports = _getImports(configNodes);
-    final language = getLanguage(configNodes);
-    return LocaleFile(Metadata(language, ''), nodes, imports);
-  }
-
-  static List<ConfigNode> _getConfigNodes(Iterable<Node> nodes) {
-    return nodes.whereType<ConfigNode>().toList();
-  }
-
-  static List<Import> _getImports(List<ConfigNode> nodes) {
-    if (nodes.isEmpty) {
-      return [];
-    }
-    final firstNode = nodes.first;
-    final hasImportFlag = firstNode.hasFlag('import');
-    if (hasImportFlag) return firstNode.value.value.map((e) => Import(e)).toList();
-    return [];
-  }
-
-  static String getLanguage(List<ConfigNode> nodes) {
-    final languageConfig = nodes.firstWhereOrNull((n) => n.hasFlag('language'));
-    return languageConfig?.value.value.first ?? 'en';
-  }
-
-  @override
-  List<Object?> get props => [metadata, nodes, imports];
-}
 
 class Import extends Equatable {
   final String value;
@@ -47,16 +9,6 @@ class Import extends Equatable {
 
   @override
   List<Object> get props => [value];
-}
-
-class Metadata extends Equatable {
-  final String localeName;
-  final String languageCode;
-
-  Metadata(this.localeName, this.languageCode);
-
-  @override
-  List<Object> get props => [localeName, languageCode];
 }
 
 abstract class NodeValue extends Equatable {

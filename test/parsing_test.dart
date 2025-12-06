@@ -1,11 +1,16 @@
+import 'dart:io';
+
+import 'package:i69n/src/v2/shared/file.dart';
+import 'package:i69n/src/v2/shared/file_data.dart';
+import 'package:i69n/src/v2/shared/file_metadata.dart';
 import 'package:i69n/src/v2/shared/node.dart';
 import 'package:test/test.dart';
-import 'mock/testMessages.i69n.mock.dart';
+import 'mock/fixture.dart';
 
 void main() {
   test('testMessages.i69n', () async {
-    await testParsing('testMessages.i69n', (parser, actual) {
-      final expected = LocaleFile(Metadata('sk', ''), [
+    await Fixture.testParsing('testMessages', (filePath, actual) async {
+      final expected = FileData(FileMetadata(LocaleFile(filePath), true, 'en', 'sk'), [
         ConfigNode(StringNodeKey('_i69n_import'), StringListNodeValue(['dart:io'])),
         ConfigNode(StringNodeKey('_i69n_language'), StringListNodeValue(['sk'])),
         Node(
@@ -88,6 +93,9 @@ void main() {
       expect(actual.nodes[3], expected.nodes[3]);
       expect(actual.nodes[4], expected.nodes[4]);
       expect(actual.nodes[5], expected.nodes[5]);
+
+      final script = await File('test/mock/testMessages.i69n.g.dart').readAsString();
+      expect(actual.build(), script);
     });
   });
 }
