@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dart_style/dart_style.dart';
 import 'package:i69n/src/v2/shared/file.dart';
 import 'package:i69n/src/v2/shared/file_data.dart';
 import 'package:i69n/src/v2/shared/file_metadata.dart';
@@ -22,8 +23,12 @@ void main() {
               Node(StringNodeKey('ok'), StringNodeValue('OK')),
               Node(StringNodeKey('done'), StringNodeValue('DONE')),
               Node(StringNodeKey('letsGo'), StringNodeValue('Let\'s go!')),
-              Node(ParametrizedNodeKey('ordinalNumber', [Parameter('n', 'int')]),
-                  GrammaticalNumberNodeValue("\${_ordinal(n, one: '1st', two: '2nd', few: '3rd', other: '\${n}th')}")),
+              Node(
+                  ParametrizedNodeKey('ordinalNumber', [Parameter('n', 'int')]),
+                  GrammaticalNumberNodeValue(
+                    "\${_ordinal(n, one: '1st', two: '2nd', few: '3rd', other: '\${n}th')}",
+                    GrammaticalNumberType.ordinal,
+                  )),
             ]),
           ),
           Node(
@@ -36,7 +41,10 @@ void main() {
                   StringNodeValue('Use this function to generate new invoices and stuff. Awesome!')),
               Node(
                 ParametrizedNodeKey('count', [Parameter('cnt', 'int')]),
-                GrammaticalNumberNodeValue("You have created \$cnt \${_plural(cnt, one:'invoice', many:'invoices')}."),
+                GrammaticalNumberNodeValue(
+                  "You have created \$cnt \${_plural(cnt, one:'invoice', many:'invoices')}.",
+                  GrammaticalNumberType.plural,
+                ),
               ),
               Node(StringNodeKey('something'), StringNodeValue(r"Let\'s go!")),
             ]),
@@ -48,7 +56,9 @@ void main() {
                 Node(
                   ParametrizedNodeKey('_apples', [Parameter('cnt', 'int')]),
                   GrammaticalNumberNodeValue(
-                      "\${_plural(cnt, zero: 'no apples', one:'\$cnt apple', many:'\$cnt apples')}"),
+                    "\${_plural(cnt, zero: 'no apples', one:'\$cnt apple', many:'\$cnt apples')}",
+                    GrammaticalNumberType.plural,
+                  ),
                 ),
                 Node(
                   ParametrizedNodeKey('count', [Parameter('cnt', 'int')]),
@@ -57,7 +67,9 @@ void main() {
                 Node(
                   ParametrizedNodeKey('problematic', [Parameter('count', 'int')]),
                   GrammaticalNumberNodeValue(
-                      "\${_plural(count, zero:'didn\\'t find any tasks', one:'found 1 task', other: 'found \$count tasks')}"),
+                    "\${_plural(count, zero:'didn\\'t find any tasks', one:'found 1 task', other: 'found \$count tasks')}",
+                    GrammaticalNumberType.plural,
+                  ),
                 ),
                 Node(StringNodeKey('anotherProblem'), StringNodeValue('here\nthere')),
                 Node(StringNodeKey('quotes'), StringNodeValue('Hello \\\"world\\\"!')),
@@ -99,8 +111,9 @@ void main() {
       expect(actual.nodes[4], expected.nodes[4]);
       expect(actual.nodes[5], expected.nodes[5]);
 
-      final script = await File('test/mock/testMessages.i69n.g.dart').readAsString();
-      expect(actual.build(), script);
+      final expectedScript = await Fixture.getFileFormattedContent('test/mock/testMessages.i69n.g.dart');
+      final actualScript = actual.build();
+      expect(actualScript, expectedScript);
     });
   });
 }

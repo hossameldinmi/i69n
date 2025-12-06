@@ -113,6 +113,33 @@ class Node extends NodeValue {
 
   @override
   List<Object> get props => [key, value];
+
+  bool hasPluralNode() {
+    final isPlural = value is GrammaticalNumberNodeValue &&
+        (value as GrammaticalNumberNodeValue).isType(GrammaticalNumberType.plural);
+    if (isPlural) {
+      return true;
+    }
+    return value is NodeListNodeValue && (value as NodeListNodeValue).value.any((e) => e.hasPluralNode());
+  }
+
+  bool hasOrdinalNode() {
+    final isOrdinal = value is GrammaticalNumberNodeValue &&
+        (value as GrammaticalNumberNodeValue).isType(GrammaticalNumberType.ordinal);
+    if (isOrdinal) {
+      return true;
+    }
+    return value is NodeListNodeValue && (value as NodeListNodeValue).value.any((e) => e.hasOrdinalNode());
+  }
+
+  bool hasCardinalNode() {
+    final isCardinal = value is GrammaticalNumberNodeValue &&
+        (value as GrammaticalNumberNodeValue).isType(GrammaticalNumberType.cardinal);
+    if (isCardinal) {
+      return true;
+    }
+    return value is NodeListNodeValue && (value as NodeListNodeValue).value.any((e) => e.hasCardinalNode());
+  }
 }
 
 class StringNodeValue extends NodeValue {
@@ -142,20 +169,26 @@ class StringListNodeValue extends NodeValue {
   List<Object> get props => [value];
 }
 
+enum GrammaticalNumberType { plural, ordinal, cardinal }
+
 class GrammaticalNumberNodeValue extends NodeValue {
   final String value;
-  GrammaticalNumberNodeValue(this.value);
+  final GrammaticalNumberType type;
+  static final _regex = RegExp(r'plural|ordinal|cardinal');
+  GrammaticalNumberNodeValue(this.value, this.type);
 
   static GrammaticalNumberNodeValue? create(dynamic value) {
-    final regex = RegExp(r'plural|ordinal|cardinal');
-    if (regex.hasMatch(value)) {
-      return GrammaticalNumberNodeValue(value);
+    if (_regex.hasMatch(value)) {
+      return GrammaticalNumberNodeValue(
+          value, GrammaticalNumberType.values.firstWhere((e) => e.name == _regex.firstMatch(value)!.group(0)!));
     }
     return null;
   }
 
+  bool isType(GrammaticalNumberType type) => this.type == type;
+
   @override
-  List<Object> get props => [value];
+  List<Object> get props => [value, type];
 }
 
 class NodeListNodeValue extends NodeValue {

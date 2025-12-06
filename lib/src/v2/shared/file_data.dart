@@ -61,6 +61,25 @@ class FileData extends Equatable {
     output.writeln("String get _languageCode => '${metadata.languageCode}';");
     output.writeln("String get _localeName => '${metadata.localeName}';");
     output.writeln('');
+    if (hasPluralNode) {
+      output.write('''
+String _plural(int count, {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
+    i69n.plural(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
+''');
+    }
+    if (hasOrdinalNode) {
+      output.write('''
+String _ordinal(int count, {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
+    i69n.ordinal(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
+''');
+    }
+    if (hasCardinalNode) {
+      output.write('''
+String _cardinal(int count, {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
+    i69n.cardinal(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
+''');
+    }
+    output.writeln('');
     try {
       var formatter = DartFormatter(
         languageVersion: DartFormatter.latestShortStyleLanguageVersion,
@@ -75,4 +94,10 @@ class FileData extends Equatable {
 
   @override
   List<Object?> get props => [metadata, nodes, imports];
+
+  bool get hasPluralNode => nodes.any((e) => e.hasPluralNode());
+
+  bool get hasOrdinalNode => nodes.any((e) => e.hasOrdinalNode());
+
+  bool get hasCardinalNode => nodes.any((e) => e.hasCardinalNode());
 }

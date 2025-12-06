@@ -5,3 +5,8 @@ import 'dart:io';
 
 String get _languageCode => 'sk';
 String get _localeName => 'en';
+
+String _plural(int count, {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
+    i69n.plural(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
+String _ordinal(int count, {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
+    i69n.ordinal(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
