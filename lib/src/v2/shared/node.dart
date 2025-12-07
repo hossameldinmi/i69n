@@ -180,7 +180,9 @@ class GrammaticalNumberNodeValue extends NodeValue {
   static GrammaticalNumberNodeValue? create(dynamic value) {
     if (_regex.hasMatch(value)) {
       return GrammaticalNumberNodeValue(
-          value, GrammaticalNumberType.values.firstWhere((e) => e.name == _regex.firstMatch(value)!.group(0)!));
+        value,
+        GrammaticalNumberType.values.firstWhere((e) => e.name == _regex.firstMatch(value)!.group(0)!),
+      );
     }
     return null;
   }

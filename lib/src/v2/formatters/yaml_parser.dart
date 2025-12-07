@@ -1,7 +1,6 @@
 import 'dart:io';
-
 import 'package:i69n/src/v2/formatters/base_parser.dart';
-import 'package:i69n/src/v2/shared/file_data.dart';
+import 'package:i69n/src/v2/shared/file_node.dart';
 import 'package:yaml/yaml.dart';
 
 class YamlParser implements BaseParser {
@@ -9,10 +8,10 @@ class YamlParser implements BaseParser {
 
   YamlParser(this.filePath);
   @override
-  Future<FileData> parse() async {
+  Future<FileNode> parse() async {
     final file = File(filePath);
     final String yamlString = await file.readAsString();
     final yamlMap = (loadYaml(yamlString) as YamlMap);
-    return FileData.parseMap(filePath, yamlMap);
+    return FileNode.parseMap(filePath, yamlMap);
   }
 }

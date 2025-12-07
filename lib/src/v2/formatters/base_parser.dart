@@ -1,5 +1,5 @@
-import 'package:i69n/src/v2/shared/file_data.dart';
+import 'package:i69n/src/v2/shared/file_node.dart';
 
 abstract class BaseParser {
-  Future<FileData> parse();
+  Future<FileNode> parse();
 }

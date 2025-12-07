@@ -5,21 +5,21 @@ import 'package:i69n/src/v2/shared/file.dart';
 import 'package:i69n/src/v2/shared/file_metadata.dart';
 import 'package:i69n/src/v2/shared/node.dart';
 
-class FileData extends Equatable {
+class FileNode extends Equatable {
   final FileMetadata metadata;
   final List<Node> nodes;
   final List<Import> imports;
   final List<String> lintIgnore;
-  FileData(this.metadata, this.nodes, this.imports, this.lintIgnore);
+  FileNode(this.metadata, this.nodes, this.imports, this.lintIgnore);
 
-  factory FileData.parseMap(String filePath, Map<dynamic, dynamic> map) {
+  factory FileNode.parseMap(String filePath, Map<dynamic, dynamic> map) {
     final file = LocaleFile(filePath);
     final nodes = map.entries.map((entry) => Node.create(entry.key, entry.value)).toList();
     final configNodes = _getConfigNodes(nodes);
     final imports = _getImports(configNodes);
     final fileMetadata = FileMetadata.fromData(configNodes, file);
     final ignores = _getIgnores(configNodes);
-    return FileData(fileMetadata, nodes, imports, ignores);
+    return FileNode(fileMetadata, nodes, imports, ignores);
   }
 
   static List<ConfigNode> _getConfigNodes(Iterable<Node> nodes) {

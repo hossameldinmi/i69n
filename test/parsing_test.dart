@@ -1,8 +1,5 @@
-import 'dart:io';
-
-import 'package:dart_style/dart_style.dart';
 import 'package:i69n/src/v2/shared/file.dart';
-import 'package:i69n/src/v2/shared/file_data.dart';
+import 'package:i69n/src/v2/shared/file_node.dart';
 import 'package:i69n/src/v2/shared/file_metadata.dart';
 import 'package:i69n/src/v2/shared/node.dart';
 import 'package:test/test.dart';
@@ -11,7 +8,7 @@ import 'mock/fixture.dart';
 void main() {
   test('testMessages.i69n', () async {
     await Fixture.testParsing('testMessages', (filePath, actual) async {
-      final expected = FileData(
+      final expected = FileNode(
         FileMetadata(LocaleFile(filePath), true, 'en', 'sk'),
         [
           ConfigNode(StringNodeKey('_i69n_import'), StringListNodeValue(['dart:io'])),

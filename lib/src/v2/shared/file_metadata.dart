@@ -8,8 +8,8 @@ class FileMetadata extends Equatable {
   final bool isDefault;
   final String localeName;
   final String languageCode;
-  static final twoCharsLower = RegExp('^[a-z]{2,3}\$');
-  static final twoCharsUpper = RegExp('^[A-Z]{2,3}\$');
+  static final _twoCharsLower = RegExp('^[a-z]{2,3}\$');
+  static final _twoCharsUpper = RegExp('^[A-Z]{2,3}\$');
   FileMetadata(this.localeFile, this.isDefault, this.localeName, this.languageCode);
 
   factory FileMetadata.fromData(List<ConfigNode> nodes, LocaleFile localeFile) {
@@ -35,18 +35,18 @@ class FileMetadata extends Equatable {
       }
       if (nameParts.length >= 2) {
         var languageCode = nameParts[1];
-        if (twoCharsLower.allMatches(languageCode).length != 1) {
+        if (_twoCharsLower.allMatches(languageCode).length != 1) {
           throw Exception(
-              'Wrong language code $languageCode in file name ${localeFile.filePath}. Language code must match $twoCharsLower');
+              'Wrong language code $languageCode in file name ${localeFile.filePath}. Language code must match $_twoCharsLower');
         }
         languageCode = languageCode;
         localeName = languageCode;
       }
       if (nameParts.length == 3) {
         var countryCode = nameParts[2];
-        if (twoCharsUpper.allMatches(countryCode).length != 1) {
+        if (_twoCharsUpper.allMatches(countryCode).length != 1) {
           throw Exception(
-              'Wrong country code $countryCode in file name ${localeFile.filePath}. Country code must match $twoCharsUpper');
+              'Wrong country code $countryCode in file name ${localeFile.filePath}. Country code must match $_twoCharsUpper');
         }
         localeName = '${languageCode}_$countryCode';
       }
