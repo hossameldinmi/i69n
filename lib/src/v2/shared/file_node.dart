@@ -1,4 +1,5 @@
 import 'dart:core';
+import 'dart:developer';
 
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
@@ -95,7 +96,7 @@ String _cardinal(int count, {String? zero, String? one, String? two, String? few
     });
     final clsStrBuffer = cls.accept(cb.DartEmitter());
     final clsStr = clsStrBuffer.toString();
-    print(clsStr);
+    log(clsStr);
     output.write(clsStrBuffer);
     try {
       var formatter = DartFormatter(
