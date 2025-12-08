@@ -1,9 +1,14 @@
+import 'dart:core';
+
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:equatable/equatable.dart';
+import 'package:i69n/src/v2/constants.dart';
 import 'package:i69n/src/v2/shared/file.dart';
 import 'package:i69n/src/v2/shared/file_metadata.dart';
 import 'package:i69n/src/v2/shared/node.dart';
+import 'package:code_builder/code_builder.dart' as cb;
+import 'package:i69n/src/v2/utils/string_extensions.dart';
 
 class FileNode extends Equatable {
   final FileMetadata metadata;
@@ -55,7 +60,7 @@ class FileNode extends Equatable {
     }
     output.writeln('');
     output.writeln('// GENERATED FILE, do not edit!');
-    output.writeln("import 'package:i69n/i69n.dart' as i69n;");
+    output.writeln("import 'package:i69n/i69n.dart' as ${Constants.i69n};");
     imports.map((e) => "import '$e';").forEach((e) => output.writeln(e));
     output.writeln('');
     output.writeln("String get _languageCode => '${metadata.languageCode}';");
@@ -80,6 +85,18 @@ String _cardinal(int count, {String? zero, String? one, String? two, String? few
 ''');
     }
     output.writeln('');
+
+    final cls = cb.Class((b) {
+      b.name = metadata.localeFile.pureFileName.toPascalCase();
+      b.implements.add(cb.Reference(Constants.i69nMessageBundle));
+      b.constructors.add(cb.Constructor((c) {
+        c.constant = true;
+      }));
+    });
+    final clsStrBuffer = cls.accept(cb.DartEmitter());
+    final clsStr = clsStrBuffer.toString();
+    print(clsStr);
+    output.write(clsStrBuffer);
     try {
       var formatter = DartFormatter(
         languageVersion: DartFormatter.latestShortStyleLanguageVersion,
