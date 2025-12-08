@@ -9,8 +9,8 @@ void main() {
   test('testMessages.i69n', () async {
     await Fixture.testParsing('testMessages', (filePath, actual) async {
       final expected = FileNode(
-        FileMetadata(LocaleFile(filePath), true, 'en', 'sk'),
-        [
+        StringNodeKey('testMessages'),
+        NodeListNodeValue([
           ConfigNode(StringNodeKey('_i69n_import'), StringListNodeValue(['dart:io'])),
           ConfigNode(StringNodeKey('_i69n_language'), StringListNodeValue(['sk'])),
           Node(
@@ -92,7 +92,8 @@ void main() {
                   ])),
             ]),
           ),
-        ],
+        ]),
+        FileMetadata(LocaleFile(filePath), true, 'en', 'sk'),
         [
           Import('dart:io'),
         ],
@@ -101,12 +102,12 @@ void main() {
       ;
       expect(actual.imports, expected.imports);
       expect(actual.metadata, expected.metadata);
-      expect(actual.nodes[0], expected.nodes[0]);
-      expect(actual.nodes[1], expected.nodes[1]);
-      expect(actual.nodes[2], expected.nodes[2]);
-      expect(actual.nodes[3], expected.nodes[3]);
-      expect(actual.nodes[4], expected.nodes[4]);
-      expect(actual.nodes[5], expected.nodes[5]);
+      expect(actual.value.value[0], expected.value.value[0]);
+      expect(actual.value.value[1], expected.value.value[1]);
+      expect(actual.value.value[2], expected.value.value[2]);
+      expect(actual.value.value[3], expected.value.value[3]);
+      expect(actual.value.value[4], expected.value.value[4]);
+      expect(actual.value.value[5], expected.value.value[5]);
 
       final expectedScript = await Fixture.getFileFormattedContent('test/mock/testMessages.i69n.g.dart');
       final actualScript = actual.build();

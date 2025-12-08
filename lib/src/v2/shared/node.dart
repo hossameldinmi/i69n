@@ -11,9 +11,10 @@ class Import extends Equatable {
   List<Object> get props => [value];
 }
 
-abstract class NodeValue extends Equatable {
-  const NodeValue();
-  factory NodeValue.create(dynamic value) {
+abstract class NodeValue<V extends Object> extends Equatable {
+  final V value;
+  const NodeValue(this.value);
+  static NodeValue create(dynamic value) {
     if (value is String) {
       final grammatical = GrammaticalNumberNodeValue.create(value);
       if (grammatical != null) return grammatical;
@@ -27,6 +28,9 @@ abstract class NodeValue extends Equatable {
     }
     throw Exception('Unsupported value type: ${value.runtimeType}');
   }
+
+  @override
+  List<Object> get props => [value];
 }
 
 abstract class NodeKey extends Equatable {
@@ -95,11 +99,9 @@ class Parameter extends Equatable {
   List<Object> get props => [name, type];
 }
 
-class Node extends NodeValue {
+class Node extends NodeValue<NodeValue> {
   final NodeKey key;
-  final NodeValue value;
-
-  Node(this.key, this.value);
+  Node(this.key, super.value);
 
   factory Node.create(dynamic key, dynamic value) {
     final nodeKey = NodeKey.create(key);
@@ -114,45 +116,40 @@ class Node extends NodeValue {
   @override
   List<Object> get props => [key, value];
 
-  bool hasPluralNode() {
+  bool get hasPluralNode {
     final isPlural = value is GrammaticalNumberNodeValue &&
         (value as GrammaticalNumberNodeValue).isType(GrammaticalNumberType.plural);
     if (isPlural) {
       return true;
     }
-    return value is NodeListNodeValue && (value as NodeListNodeValue).value.any((e) => e.hasPluralNode());
+    return value is NodeListNodeValue && (value as NodeListNodeValue).hasPluralNode;
   }
 
-  bool hasOrdinalNode() {
+  bool get hasOrdinalNode {
     final isOrdinal = value is GrammaticalNumberNodeValue &&
         (value as GrammaticalNumberNodeValue).isType(GrammaticalNumberType.ordinal);
     if (isOrdinal) {
       return true;
     }
-    return value is NodeListNodeValue && (value as NodeListNodeValue).value.any((e) => e.hasOrdinalNode());
+    return value is NodeListNodeValue && (value as NodeListNodeValue).hasOrdinalNode;
   }
 
-  bool hasCardinalNode() {
+  bool get hasCardinalNode {
     final isCardinal = value is GrammaticalNumberNodeValue &&
         (value as GrammaticalNumberNodeValue).isType(GrammaticalNumberType.cardinal);
     if (isCardinal) {
       return true;
     }
-    return value is NodeListNodeValue && (value as NodeListNodeValue).value.any((e) => e.hasCardinalNode());
+    return value is NodeListNodeValue && (value as NodeListNodeValue).hasCardinalNode;
   }
 }
 
-class StringNodeValue extends NodeValue {
-  final String value;
-  StringNodeValue(this.value);
-
-  @override
-  List<Object> get props => [value];
+class StringNodeValue extends NodeValue<String> {
+  const StringNodeValue(super.value);
 }
 
-class StringListNodeValue extends NodeValue {
-  final List<String> value;
-  StringListNodeValue(this.value);
+class StringListNodeValue extends NodeValue<List<String>> {
+  const StringListNodeValue(super.value);
 
   factory StringListNodeValue.create(dynamic value) {
     if (value is String) {
@@ -164,18 +161,14 @@ class StringListNodeValue extends NodeValue {
     }
     throw Exception('Unsupported value type: ${value.runtimeType}');
   }
-
-  @override
-  List<Object> get props => [value];
 }
 
 enum GrammaticalNumberType { plural, ordinal, cardinal }
 
-class GrammaticalNumberNodeValue extends NodeValue {
-  final String value;
+class GrammaticalNumberNodeValue extends NodeValue<String> {
   final GrammaticalNumberType type;
   static final _regex = RegExp(r'plural|ordinal|cardinal');
-  GrammaticalNumberNodeValue(this.value, this.type);
+  GrammaticalNumberNodeValue(super.value, this.type);
 
   static GrammaticalNumberNodeValue? create(dynamic value) {
     if (_regex.hasMatch(value)) {
@@ -190,19 +183,21 @@ class GrammaticalNumberNodeValue extends NodeValue {
   bool isType(GrammaticalNumberType type) => this.type == type;
 
   @override
-  List<Object> get props => [value, type];
+  List<Object> get props => [...super.props, type];
 }
 
-class NodeListNodeValue extends NodeValue {
-  final List<Node> value;
-  NodeListNodeValue(this.value);
+class NodeListNodeValue extends NodeValue<List<Node>> {
+  NodeListNodeValue(super.value);
 
   factory NodeListNodeValue.create(Map value) {
     return NodeListNodeValue(value.entries.map((entry) => Node.create(entry.key, entry.value)).toList());
   }
 
-  @override
-  List<Object> get props => [value];
+  bool get hasPluralNode => value.any((e) => e.hasPluralNode);
+
+  bool get hasCardinalNode => value.any((e) => e.hasCardinalNode);
+
+  bool get hasOrdinalNode => value.any((e) => e.hasOrdinalNode);
 }
 
 class ConfigNode extends Node {

@@ -1,9 +1,7 @@
 import 'dart:core';
 import 'dart:developer';
-
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
-import 'package:equatable/equatable.dart';
 import 'package:i69n/src/v2/constants.dart';
 import 'package:i69n/src/v2/shared/file.dart';
 import 'package:i69n/src/v2/shared/file_metadata.dart';
@@ -11,12 +9,14 @@ import 'package:i69n/src/v2/shared/node.dart';
 import 'package:code_builder/code_builder.dart' as cb;
 import 'package:i69n/src/v2/utils/string_extensions.dart';
 
-class FileNode extends Equatable {
+class FileNode extends Node {
   final FileMetadata metadata;
-  final List<Node> nodes;
+  @override
+  NodeListNodeValue get value => super.value as NodeListNodeValue;
   final List<Import> imports;
   final List<String> lintIgnore;
-  FileNode(this.metadata, this.nodes, this.imports, this.lintIgnore);
+  FileNode(StringNodeKey key, NodeListNodeValue value, this.metadata, this.imports, this.lintIgnore)
+      : super(key, value);
 
   factory FileNode.parseMap(String filePath, Map<dynamic, dynamic> map) {
     final file = LocaleFile(filePath);
@@ -25,7 +25,8 @@ class FileNode extends Equatable {
     final imports = _getImports(configNodes);
     final fileMetadata = FileMetadata.fromData(configNodes, file);
     final ignores = _getIgnores(configNodes);
-    return FileNode(fileMetadata, nodes, imports, ignores);
+    return FileNode(
+        StringNodeKey(fileMetadata.localeFile.fileName), NodeListNodeValue(nodes), fileMetadata, imports, ignores);
   }
 
   static List<ConfigNode> _getConfigNodes(Iterable<Node> nodes) {
@@ -111,11 +112,14 @@ String _cardinal(int count, {String? zero, String? one, String? two, String? few
   }
 
   @override
-  List<Object?> get props => [metadata, nodes, imports];
+  List<Object> get props => [...super.props, lintIgnore, imports, metadata];
 
-  bool get hasPluralNode => nodes.any((e) => e.hasPluralNode());
+  @override
+  bool get hasPluralNode => value.hasPluralNode;
 
-  bool get hasOrdinalNode => nodes.any((e) => e.hasOrdinalNode());
+  @override
+  bool get hasOrdinalNode => value.hasOrdinalNode;
 
-  bool get hasCardinalNode => nodes.any((e) => e.hasCardinalNode());
+  @override
+  bool get hasCardinalNode => value.hasCardinalNode;
 }
