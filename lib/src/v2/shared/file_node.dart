@@ -15,8 +15,8 @@ class FileNode extends Node {
   NodeListNodeValue get value => super.value as NodeListNodeValue;
   final List<Import> imports;
   final List<String> lintIgnore;
-  FileNode(StringNodeKey key, NodeListNodeValue value, this.metadata, this.imports, this.lintIgnore)
-      : super(key, value);
+  FileNode(String key, NodeListNodeValue value, this.metadata, this.imports, this.lintIgnore)
+      : super(NodeKey(key), value);
 
   factory FileNode.parseMap(String filePath, Map<dynamic, dynamic> map) {
     final file = LocaleFile(filePath);
@@ -26,7 +26,12 @@ class FileNode extends Node {
     final fileMetadata = FileMetadata.fromData(configNodes, file);
     final ignores = _getIgnores(configNodes);
     return FileNode(
-        StringNodeKey(fileMetadata.localeFile.fileName), NodeListNodeValue(nodes), fileMetadata, imports, ignores);
+      fileMetadata.localeFile.fileName,
+      NodeListNodeValue(nodes),
+      fileMetadata,
+      imports,
+      ignores,
+    );
   }
 
   static List<ConfigNode> _getConfigNodes(Iterable<Node> nodes) {

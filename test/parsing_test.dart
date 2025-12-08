@@ -9,17 +9,17 @@ void main() {
   test('testMessages.i69n', () async {
     await Fixture.testParsing('testMessages', (filePath, actual) async {
       final expected = FileNode(
-        StringNodeKey('testMessages'),
+        'testMessages',
         NodeListNodeValue([
-          ConfigNode(StringNodeKey('_i69n_import'), StringListNodeValue(['dart:io'])),
-          ConfigNode(StringNodeKey('_i69n_language'), StringListNodeValue(['sk'])),
+          ConfigNode(NodeKey('_i69n_import'), StringListNodeValue(['dart:io'])),
+          ConfigNode(NodeKey('_i69n_language'), StringListNodeValue(['sk'])),
           Node(
-            StringNodeKey('generic'),
+            NodeKey('generic'),
             NodeListNodeValue([
-              ConfigNode(StringNodeKey('_i69n'), StringListNodeValue(['flag'])),
-              Node(StringNodeKey('ok'), StringNodeValue('OK')),
-              Node(StringNodeKey('done'), StringNodeValue('DONE')),
-              Node(StringNodeKey('letsGo'), StringNodeValue('Let\'s go!')),
+              ConfigNode(NodeKey('_i69n'), StringListNodeValue(['flag'])),
+              Node(NodeKey('ok'), StringNodeValue('OK')),
+              Node(NodeKey('done'), StringNodeValue('DONE')),
+              Node(NodeKey('letsGo'), StringNodeValue('Let\'s go!')),
               Node(
                   ParametrizedNodeKey('ordinalNumber', [Parameter('n', 'int')]),
                   GrammaticalNumberNodeValue(
@@ -29,13 +29,12 @@ void main() {
             ]),
           ),
           Node(
-            StringNodeKey('invoice'),
+            NodeKey('invoice'),
             NodeListNodeValue([
-              ConfigNode(StringNodeKey('_i69n'), StringListNodeValue(['noescape', 'nomap'])),
-              Node(StringNodeKey('create'), StringNodeValue('Create invoice')),
-              Node(StringNodeKey('delete'), StringNodeValue('Delete  invoice')),
-              Node(StringNodeKey('help'),
-                  StringNodeValue('Use this function to generate new invoices and stuff. Awesome!')),
+              ConfigNode(NodeKey('_i69n'), StringListNodeValue(['noescape', 'nomap'])),
+              Node(NodeKey('create'), StringNodeValue('Create invoice')),
+              Node(NodeKey('delete'), StringNodeValue('Delete  invoice')),
+              Node(NodeKey('help'), StringNodeValue('Use this function to generate new invoices and stuff. Awesome!')),
               Node(
                 ParametrizedNodeKey('count', [Parameter('cnt', 'int')]),
                 GrammaticalNumberNodeValue(
@@ -43,11 +42,11 @@ void main() {
                   GrammaticalNumberType.plural,
                 ),
               ),
-              Node(StringNodeKey('something'), StringNodeValue(r"Let\'s go!")),
+              Node(NodeKey('something'), StringNodeValue(r"Let\'s go!")),
             ]),
           ),
           Node(
-            StringNodeKey('apples'),
+            NodeKey('apples'),
             NodeListNodeValue(
               [
                 Node(
@@ -68,27 +67,27 @@ void main() {
                     GrammaticalNumberType.plural,
                   ),
                 ),
-                Node(StringNodeKey('anotherProblem'), StringNodeValue('here\nthere')),
-                Node(StringNodeKey('quotes'), StringNodeValue('Hello \\\"world\\\"!')),
-                Node(StringNodeKey('quotes2'), StringNodeValue('Hello \\"world\\"!')),
+                Node(NodeKey('anotherProblem'), StringNodeValue('here\nthere')),
+                Node(NodeKey('quotes'), StringNodeValue('Hello \\\"world\\\"!')),
+                Node(NodeKey('quotes2'), StringNodeValue('Hello \\"world\\"!')),
               ],
             ),
           ),
           Node(
-            StringNodeKey('friends'),
+            NodeKey('friends'),
             NodeListNodeValue([
               Node(
-                  StringNodeKey('michael'),
+                  NodeKey('michael'),
                   NodeListNodeValue([
-                    Node(StringNodeKey('name'), StringNodeValue('Aaaaa')),
-                    Node(StringNodeKey('description'), StringNodeValue('Aa Aa Aa')),
+                    Node(NodeKey('name'), StringNodeValue('Aaaaa')),
+                    Node(NodeKey('description'), StringNodeValue('Aa Aa Aa')),
                   ])),
               Node(
-                  StringNodeKey('eva'),
+                  NodeKey('eva'),
                   NodeListNodeValue([
-                    ConfigNode(StringNodeKey('_i69n_implements'), StringListNodeValue(['MichaelFriendsTestMessages'])),
-                    Node(StringNodeKey('name'), StringNodeValue('Bbbbb')),
-                    Node(StringNodeKey('description'), StringNodeValue('Bb Bb Bb')),
+                    ConfigNode(NodeKey('_i69n_implements'), StringListNodeValue(['MichaelFriendsTestMessages'])),
+                    Node(NodeKey('name'), StringNodeValue('Bbbbb')),
+                    Node(NodeKey('description'), StringNodeValue('Bb Bb Bb')),
                   ])),
             ]),
           ),

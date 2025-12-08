@@ -33,33 +33,28 @@ abstract class NodeValue<V extends Object> extends Equatable {
   List<Object> get props => [value];
 }
 
-abstract class NodeKey extends Equatable {
+class NodeKey extends Equatable {
   final String key;
 
-  NodeKey._(this.key);
+  NodeKey(this.key);
 
   factory NodeKey.create(dynamic key) {
     if (key is String) {
       if (key.contains('(')) {
         return ParametrizedNodeKey.fromKey(key);
       }
-      return StringNodeKey(key);
+      return NodeKey(key);
     }
-    return StringNodeKey(key.toString());
+    return NodeKey(key.toString());
   }
-}
-
-class StringNodeKey extends NodeKey {
-  StringNodeKey(super.key) : super._();
-
-  bool startsWith(String pattern) => super.key.startsWith(pattern);
+  bool startsWith(String pattern) => key.startsWith(pattern);
 
   @override
   List<Object> get props => [key];
 }
 
 class ParametrizedNodeKey extends NodeKey {
-  ParametrizedNodeKey(super.key, this.parameters) : super._();
+  ParametrizedNodeKey(super.key, this.parameters);
   final List<Parameter> parameters;
 
   factory ParametrizedNodeKey.fromKey(String key) {
@@ -166,9 +161,9 @@ class StringListNodeValue extends NodeValue<List<String>> {
 enum GrammaticalNumberType { plural, ordinal, cardinal }
 
 class GrammaticalNumberNodeValue extends NodeValue<String> {
-  final GrammaticalNumberType type;
+  final GrammaticalNumberType _type;
   static final _regex = RegExp(r'plural|ordinal|cardinal');
-  GrammaticalNumberNodeValue(super.value, this.type);
+  GrammaticalNumberNodeValue(super.value, this._type);
 
   static GrammaticalNumberNodeValue? create(dynamic value) {
     if (_regex.hasMatch(value)) {
@@ -180,10 +175,10 @@ class GrammaticalNumberNodeValue extends NodeValue<String> {
     return null;
   }
 
-  bool isType(GrammaticalNumberType type) => this.type == type;
+  bool isType(GrammaticalNumberType type) => this._type == type;
 
   @override
-  List<Object> get props => [...super.props, type];
+  List<Object> get props => [...super.props, _type];
 }
 
 class NodeListNodeValue extends NodeValue<List<Node>> {
@@ -208,7 +203,7 @@ class ConfigNode extends Node {
   ConfigNode(NodeKey key, this.value) : super(key, value);
 
   static ConfigNode? create(NodeKey key, dynamic value) {
-    if (key is StringNodeKey && key.startsWith(_configKey)) {
+    if (key.startsWith(_configKey)) {
       return ConfigNode(key, StringListNodeValue.create(value));
     }
     return null;
