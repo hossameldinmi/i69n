@@ -1,0 +1,29 @@
+import 'package:i69n/src/v2/shared/file.dart';
+import 'package:i69n/src/v2/shared/file_metadata.dart';
+import 'package:i69n/src/v2/shared/node.dart';
+import 'package:test/test.dart';
+
+/// Covers the value/key factory edge branches: list values, non-string keys and
+/// the unsupported-type guards.
+void main() {
+  final meta = FileMetadata(LocaleFile('fooMessages.i69n.yaml'), true, 'en', 'en');
+
+  test('NodeValue.create builds a StringListNodeValue from a string list', () {
+    final v = NodeValue.create(<String>['a', 'b'], null, meta);
+    expect(v, isA<StringListNodeValue>());
+    expect((v as StringListNodeValue).value, ['a', 'b']);
+  });
+
+  test('NodeValue.create throws on an unsupported value type', () {
+    expect(() => NodeValue.create(42, null, meta), throwsException);
+  });
+
+  test('NodeKey.create stringifies a non-string key', () {
+    final k = NodeKey.create(42, null, meta);
+    expect(k.key, '42');
+  });
+
+  test('StringListNodeValue.create throws on an unsupported value type', () {
+    expect(() => StringListNodeValue.create(42), throwsException);
+  });
+}

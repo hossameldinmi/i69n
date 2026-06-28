@@ -14,10 +14,7 @@ class FileMetadata extends Equatable {
 
   factory FileMetadata.fromData(List<ConfigNode> nodes, LocaleFile localeFile) {
     String languageCode = _getLanguage(nodes);
-    final nameParts = localeFile.filePath.split('_');
-    if (nameParts.isEmpty) {
-      throw Exception(_renderFileNameError(localeFile.filePath));
-    }
+    final nameParts = localeFile.pureFileName.split('_');
     late bool isDefault;
     late String localeName;
 
@@ -34,12 +31,11 @@ class FileMetadata extends Equatable {
         throw Exception(_renderFileNameError(localeFile.filePath));
       }
       if (nameParts.length >= 2) {
-        var languageCode = nameParts[1];
+        languageCode = nameParts[1];
         if (_twoCharsLower.allMatches(languageCode).length != 1) {
           throw Exception(
               'Wrong language code $languageCode in file name ${localeFile.filePath}. Language code must match $_twoCharsLower');
         }
-        languageCode = languageCode;
         localeName = languageCode;
       }
       if (nameParts.length == 3) {

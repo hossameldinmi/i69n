@@ -1,4 +1,8 @@
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
+import 'package:i69n/src/v2/constants.dart';
+import 'package:i69n/src/v2/shared/file_metadata.dart';
+import 'package:i69n/src/v2/utils/string_extensions.dart';
 
 class Import extends Equatable {
   final String value;
@@ -14,7 +18,7 @@ class Import extends Equatable {
 abstract class NodeValue<V extends Object> extends Equatable {
   final V value;
   const NodeValue(this.value);
-  static NodeValue create(dynamic value) {
+  static NodeValue create(dynamic value, NodeKey? parent, FileMetadata metadata) {
     if (value is String) {
       final grammatical = GrammaticalNumberNodeValue.create(value);
       if (grammatical != null) return grammatical;
@@ -24,7 +28,7 @@ abstract class NodeValue<V extends Object> extends Equatable {
       return StringListNodeValue.create(value);
     }
     if (value is Map) {
-      return NodeListNodeValue.create(value);
+      return NodeListNodeValue.create(value, parent, metadata);
     }
     throw Exception('Unsupported value type: ${value.runtimeType}');
   }
@@ -35,29 +39,49 @@ abstract class NodeValue<V extends Object> extends Equatable {
 
 class NodeKey extends Equatable {
   final String key;
+  final NodeKey? parent;
+  final FileMetadata metadata;
 
-  NodeKey(this.key);
+  NodeKey(this.key, this.parent, this.metadata);
 
-  factory NodeKey.create(dynamic key) {
+  factory NodeKey.create(dynamic key, NodeKey? parent, FileMetadata metadata) {
     if (key is String) {
       if (key.contains('(')) {
-        return ParametrizedNodeKey.fromKey(key);
+        return ParametrizedNodeKey.fromKey(key, parent, metadata);
       }
-      return NodeKey(key);
+      return NodeKey(key, parent, metadata);
     }
-    return NodeKey(key.toString());
+    return NodeKey(key.toString(), parent, metadata);
   }
   bool startsWith(String pattern) => key.startsWith(pattern);
 
   @override
-  List<Object> get props => [key];
+  List<Object?> get props => [key, parent];
+
+  bool get hasParent => parent != null;
+
+  String get fullKey {
+    if (hasParent) {
+      return '${key.toPascalCase()}${parent!.fullKey.toPascalCase()}';
+    }
+    return key.toPascalCase();
+  }
+
+  /// Dotted runtime path used in `operator[]` error messages. The root resolves
+  /// to the file's language code; descendants append their raw key.
+  String get path {
+    if (hasParent) {
+      return '${parent!.path}.$key';
+    }
+    return metadata.languageCode;
+  }
 }
 
 class ParametrizedNodeKey extends NodeKey {
-  ParametrizedNodeKey(super.key, this.parameters);
+  ParametrizedNodeKey(super.key, super.parent, this.parameters, super.metadata);
   final List<Parameter> parameters;
 
-  factory ParametrizedNodeKey.fromKey(String key) {
+  factory ParametrizedNodeKey.fromKey(String key, NodeKey? parent, FileMetadata metadata) {
     final openParenIndex = key.indexOf('(');
     final baseKey = openParenIndex != -1 ? key.substring(0, openParenIndex) : key;
     final parameters = <Parameter>[];
@@ -77,11 +101,11 @@ class ParametrizedNodeKey extends NodeKey {
         }
       }
     }
-    return ParametrizedNodeKey(baseKey, parameters);
+    return ParametrizedNodeKey(baseKey, parent, parameters, metadata);
   }
 
   @override
-  List<Object> get props => [key, parameters];
+  List<Object?> get props => [...super.props, parameters];
 }
 
 class Parameter extends Equatable {
@@ -98,13 +122,16 @@ class Node extends NodeValue<NodeValue> {
   final NodeKey key;
   Node(this.key, super.value);
 
-  factory Node.create(dynamic key, dynamic value) {
-    final nodeKey = NodeKey.create(key);
+  factory Node.create(dynamic key, dynamic value, NodeKey? parentKey, FileMetadata metadata) {
+    if (key is NodeKey) {
+      parentKey = key;
+    }
+    final nodeKey = NodeKey.create(key, parentKey, metadata);
     final configNode = ConfigNode.create(nodeKey, value);
     if (configNode != null) {
       return configNode;
     }
-    final nodeValue = NodeValue.create(value);
+    final nodeValue = NodeValue.create(value, nodeKey, metadata);
     return Node(nodeKey, nodeValue);
   }
 
@@ -137,6 +164,120 @@ class Node extends NodeValue<NodeValue> {
     }
     return value is NodeListNodeValue && (value as NodeListNodeValue).hasCardinalNode;
   }
+
+  /// Whether this node renders as a Dart class (i.e. it has child nodes).
+  bool get isClassNode => value is NodeListNodeValue;
+
+  List<Node> get _configNodes {
+    final v = value;
+    if (v is NodeListNodeValue) return v.value.whereType<ConfigNode>().toList();
+    return const [];
+  }
+
+  List<Node> get _childNodes {
+    final v = value;
+    if (v is NodeListNodeValue) return v.value.where((n) => n is! ConfigNode).toList();
+    return const [];
+  }
+
+  /// Flags declared in the bare `_i69n` config node (comma separated list).
+  Set<String> get flags {
+    final cfg = _configNodes.firstWhereOrNull((c) => c.key.key == ConfigNode._configKey);
+    if (cfg is! ConfigNode) return {};
+    return cfg.value.value.map((e) => e.trim()).toSet();
+  }
+
+  bool hasFlag(String flag) => flags.contains(flag);
+
+  /// Value of a `_i69n_<name>` config node, or null when absent.
+  String? flagValue(String name) {
+    final cfg = _configNodes.firstWhereOrNull((c) => c.key.key == '${ConfigNode._configKey}_$name');
+    if (cfg is! ConfigNode || cfg.value.value.isEmpty) return null;
+    return cfg.value.value.first;
+  }
+
+  /// Renders this class node and, depth-first, every descendant class node.
+  String buildClasses(Set<String> inheritedFlags) {
+    final buffer = StringBuffer();
+    buffer.write(_renderClass(inheritedFlags));
+    final childInherited = {...inheritedFlags, ...flags};
+    for (final child in _childNodes) {
+      if (child.isClassNode) {
+        buffer.write(child.buildClasses(childInherited));
+      }
+    }
+    return buffer.toString();
+  }
+
+  String _renderClass(Set<String> inheritedFlags) {
+    final b = StringBuffer();
+    final className = key.fullKey;
+    final implementsName = flagValue('implements');
+    final implementsClause =
+        implementsName != null ? '${Constants.i69nMessageBundle}, $implementsName' : Constants.i69nMessageBundle;
+    b.writeln('class $className implements $implementsClause {');
+    if (key.hasParent) {
+      b.writeln('final ${key.parent!.fullKey} _parent;');
+      b.writeln('const $className(this._parent);');
+    } else {
+      b.writeln('const $className();');
+    }
+    final escape = hasFlag('noescape') ? (String s) => s : escapeDartString;
+    for (final child in _childNodes) {
+      if (child.isClassNode) {
+        b.writeln('${child.key.fullKey} get ${child.key.key} => ${child.key.fullKey}(this);');
+      } else {
+        final literal = escape(child.value.value.toString());
+        final childKey = child.key;
+        if (childKey is ParametrizedNodeKey) {
+          final params = childKey.parameters.map((p) => '${p.type} ${p.name}').join(', ');
+          b.writeln('String ${childKey.key}($params) => "$literal";');
+        } else {
+          b.writeln('String get ${childKey.key} => "$literal";');
+        }
+      }
+    }
+    _renderMapOperator(b, inheritedFlags);
+    b.writeln('}');
+    b.writeln('');
+    return b.toString();
+  }
+
+  void _renderMapOperator(StringBuffer b, Set<String> inheritedFlags) {
+    b.writeln('Object operator [](String key) {');
+    final disableMap = hasFlag('nomap');
+    final disableTraverse = hasFlag('notraverse');
+    if (disableMap && disableTraverse) {
+      b.writeln("throw Exception('[] operator is disabled in $path, see _i69n: nomap, notraverse flag.');");
+      b.writeln('}');
+      return;
+    }
+    if (!disableTraverse) {
+      b.writeln("var index = key.indexOf('.');");
+      b.writeln('if (index > 0) {');
+      b.writeln(
+          "return (this[key.substring(0, index)] as ${Constants.i69nMessageBundle})[key.substring(index + 1)];");
+      b.writeln('}');
+    }
+    if (disableMap) {
+      b.writeln("throw Exception('[] operator is disabled in $path, see _i69n: nomap flag.');");
+    } else {
+      b.writeln('switch (key) {');
+      for (final child in _childNodes) {
+        b.writeln("case '${child.key.key}': return ${child.key.key};");
+      }
+      final nothrow = hasFlag('nothrow') || inheritedFlags.contains('nothrow');
+      if (nothrow) {
+        b.writeln(r"default: throw Exception('Message $key doesn\'t exist in $this');");
+      } else {
+        b.writeln('default: return key;');
+      }
+      b.writeln('}');
+    }
+    b.writeln('}');
+  }
+
+  String get path => key.path;
 }
 
 class StringNodeValue extends NodeValue<String> {
@@ -184,8 +325,9 @@ class GrammaticalNumberNodeValue extends NodeValue<String> {
 class NodeListNodeValue extends NodeValue<List<Node>> {
   NodeListNodeValue(super.value);
 
-  factory NodeListNodeValue.create(Map value) {
-    return NodeListNodeValue(value.entries.map((entry) => Node.create(entry.key, entry.value)).toList());
+  factory NodeListNodeValue.create(Map value, NodeKey? parent, FileMetadata metadata) {
+    return NodeListNodeValue(
+        value.entries.map((entry) => Node.create(entry.key, entry.value, parent, metadata)).toList());
   }
 
   bool get hasPluralNode => value.any((e) => e.hasPluralNode);

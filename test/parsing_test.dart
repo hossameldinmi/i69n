@@ -8,20 +8,28 @@ import 'mock/fixture.dart';
 void main() {
   test('testMessages.i69n', () async {
     await Fixture.testParsing('testMessages', (filePath, actual) async {
+      final fileMetadata = FileMetadata(LocaleFile(filePath), true, 'en', 'sk');
+      final fileKey = NodeKey('TestMessages', null, fileMetadata);
+      final genericKey = NodeKey('generic', fileKey, fileMetadata);
+      final invoiceKey = NodeKey('invoice', fileKey, fileMetadata);
+      final applesKey = NodeKey('apples', fileKey, fileMetadata);
+      final friendsKey = NodeKey('friends', fileKey, fileMetadata);
+      final michaelKey = NodeKey('michael', friendsKey, fileMetadata);
+      final evaKey = NodeKey('eva', friendsKey, fileMetadata);
       final expected = FileNode(
-        'testMessages',
+        fileKey,
         NodeListNodeValue([
-          ConfigNode(NodeKey('_i69n_import'), StringListNodeValue(['dart:io'])),
-          ConfigNode(NodeKey('_i69n_language'), StringListNodeValue(['sk'])),
+          ConfigNode(NodeKey('_i69n_import', fileKey, fileMetadata), StringListNodeValue(['dart:io'])),
+          ConfigNode(NodeKey('_i69n_language', fileKey, fileMetadata), StringListNodeValue(['sk'])),
           Node(
-            NodeKey('generic'),
+            genericKey,
             NodeListNodeValue([
-              ConfigNode(NodeKey('_i69n'), StringListNodeValue(['flag'])),
-              Node(NodeKey('ok'), StringNodeValue('OK')),
-              Node(NodeKey('done'), StringNodeValue('DONE')),
-              Node(NodeKey('letsGo'), StringNodeValue('Let\'s go!')),
+              ConfigNode(NodeKey('_i69n', genericKey, fileMetadata), StringListNodeValue(['flag'])),
+              Node(NodeKey('ok', genericKey, fileMetadata), StringNodeValue('OK')),
+              Node(NodeKey('done', genericKey, fileMetadata), StringNodeValue('DONE')),
+              Node(NodeKey('letsGo', genericKey, fileMetadata), StringNodeValue('Let\'s go!')),
               Node(
-                  ParametrizedNodeKey('ordinalNumber', [Parameter('n', 'int')]),
+                  ParametrizedNodeKey('ordinalNumber', genericKey, [Parameter('n', 'int')], fileMetadata),
                   GrammaticalNumberNodeValue(
                     "\${_ordinal(n, one: '1st', two: '2nd', few: '3rd', other: '\${n}th')}",
                     GrammaticalNumberType.ordinal,
@@ -29,70 +37,72 @@ void main() {
             ]),
           ),
           Node(
-            NodeKey('invoice'),
+            invoiceKey,
             NodeListNodeValue([
-              ConfigNode(NodeKey('_i69n'), StringListNodeValue(['noescape', 'nomap'])),
-              Node(NodeKey('create'), StringNodeValue('Create invoice')),
-              Node(NodeKey('delete'), StringNodeValue('Delete  invoice')),
-              Node(NodeKey('help'), StringNodeValue('Use this function to generate new invoices and stuff. Awesome!')),
+              ConfigNode(NodeKey('_i69n', invoiceKey, fileMetadata), StringListNodeValue(['noescape', 'nomap'])),
+              Node(NodeKey('create', invoiceKey, fileMetadata), StringNodeValue('Create invoice')),
+              Node(NodeKey('delete', invoiceKey, fileMetadata), StringNodeValue('Delete  invoice')),
+              Node(NodeKey('help', invoiceKey, fileMetadata),
+                  StringNodeValue('Use this function to generate new invoices and stuff. Awesome!')),
               Node(
-                ParametrizedNodeKey('count', [Parameter('cnt', 'int')]),
+                ParametrizedNodeKey('count', invoiceKey, [Parameter('cnt', 'int')], fileMetadata),
                 GrammaticalNumberNodeValue(
                   "You have created \$cnt \${_plural(cnt, one:'invoice', many:'invoices')}.",
                   GrammaticalNumberType.plural,
                 ),
               ),
-              Node(NodeKey('something'), StringNodeValue(r"Let\'s go!")),
+              Node(NodeKey('something', invoiceKey, fileMetadata), StringNodeValue(r"Let\'s go!")),
             ]),
           ),
           Node(
-            NodeKey('apples'),
+            applesKey,
             NodeListNodeValue(
               [
                 Node(
-                  ParametrizedNodeKey('_apples', [Parameter('cnt', 'int')]),
+                  ParametrizedNodeKey('_apples', applesKey, [Parameter('cnt', 'int')], fileMetadata),
                   GrammaticalNumberNodeValue(
                     "\${_plural(cnt, zero: 'no apples', one:'\$cnt apple', many:'\$cnt apples')}",
                     GrammaticalNumberType.plural,
                   ),
                 ),
                 Node(
-                  ParametrizedNodeKey('count', [Parameter('cnt', 'int')]),
+                  ParametrizedNodeKey('count', applesKey, [Parameter('cnt', 'int')], fileMetadata),
                   StringNodeValue("You have eaten \${_apples(cnt)}."),
                 ),
                 Node(
-                  ParametrizedNodeKey('problematic', [Parameter('count', 'int')]),
+                  ParametrizedNodeKey('problematic', applesKey, [Parameter('count', 'int')], fileMetadata),
                   GrammaticalNumberNodeValue(
                     "\${_plural(count, zero:'didn\\'t find any tasks', one:'found 1 task', other: 'found \$count tasks')}",
                     GrammaticalNumberType.plural,
                   ),
                 ),
-                Node(NodeKey('anotherProblem'), StringNodeValue('here\nthere')),
-                Node(NodeKey('quotes'), StringNodeValue('Hello \\\"world\\\"!')),
-                Node(NodeKey('quotes2'), StringNodeValue('Hello \\"world\\"!')),
+                Node(NodeKey('anotherProblem', applesKey, fileMetadata), StringNodeValue('here\nthere')),
+                Node(NodeKey('quotes', applesKey, fileMetadata), StringNodeValue('Hello \\\"world\\\"!')),
+                Node(NodeKey('quotes2', applesKey, fileMetadata), StringNodeValue('Hello \\"world\\"!')),
               ],
             ),
           ),
           Node(
-            NodeKey('friends'),
+            friendsKey,
             NodeListNodeValue([
               Node(
-                  NodeKey('michael'),
+                  michaelKey,
                   NodeListNodeValue([
-                    Node(NodeKey('name'), StringNodeValue('Aaaaa')),
-                    Node(NodeKey('description'), StringNodeValue('Aa Aa Aa')),
+                    Node(NodeKey('name', michaelKey, fileMetadata), StringNodeValue('Aaaaa')),
+                    Node(NodeKey('description', michaelKey, fileMetadata), StringNodeValue('Aa Aa Aa')),
                   ])),
               Node(
-                  NodeKey('eva'),
+                  evaKey,
                   NodeListNodeValue([
-                    ConfigNode(NodeKey('_i69n_implements'), StringListNodeValue(['MichaelFriendsTestMessages'])),
-                    Node(NodeKey('name'), StringNodeValue('Bbbbb')),
-                    Node(NodeKey('description'), StringNodeValue('Bb Bb Bb')),
+                    ConfigNode(NodeKey('_i69n_implements', evaKey, fileMetadata),
+                        StringListNodeValue(['MichaelFriendsTestMessages'])),
+                    Node(NodeKey('name', evaKey, fileMetadata), StringNodeValue('Bbbbb')),
+                    Node(NodeKey('description', evaKey, fileMetadata), StringNodeValue('Bb Bb Bb')),
                   ])),
             ]),
           ),
         ]),
-        FileMetadata(LocaleFile(filePath), true, 'en', 'sk'),
+        fileMetadata,
         [
           Import('dart:io'),
         ],

@@ -6,7 +6,6 @@ import 'package:i69n/src/v2/constants.dart';
 import 'package:i69n/src/v2/shared/file.dart';
 import 'package:i69n/src/v2/shared/file_metadata.dart';
 import 'package:i69n/src/v2/shared/node.dart';
-import 'package:code_builder/code_builder.dart' as cb;
 import 'package:i69n/src/v2/utils/string_extensions.dart';
 
 class FileNode extends Node {
@@ -15,18 +14,22 @@ class FileNode extends Node {
   NodeListNodeValue get value => super.value as NodeListNodeValue;
   final List<Import> imports;
   final List<String> lintIgnore;
-  FileNode(String key, NodeListNodeValue value, this.metadata, this.imports, this.lintIgnore)
-      : super(NodeKey(key), value);
+  FileNode(NodeKey key, NodeListNodeValue value, this.metadata, this.imports, this.lintIgnore) : super(key, value);
 
   factory FileNode.parseMap(String filePath, Map<dynamic, dynamic> map) {
     final file = LocaleFile(filePath);
-    final nodes = map.entries.map((entry) => Node.create(entry.key, entry.value)).toList();
+    NodeKey fileKey = NodeKey(file.pureFileName.toPascalCase(), null, FileMetadata(file, true, 'en', 'en'));
+    List<Node> nodes = map.entries
+        .map((entry) => Node.create(entry.key, entry.value, fileKey, FileMetadata(file, true, 'en', 'en')))
+        .toList();
     final configNodes = _getConfigNodes(nodes);
     final imports = _getImports(configNodes);
     final fileMetadata = FileMetadata.fromData(configNodes, file);
+    fileKey = NodeKey(file.pureFileName.toPascalCase(), null, fileMetadata);
     final ignores = _getIgnores(configNodes);
+    nodes = map.entries.map((entry) => Node.create(entry.key, entry.value, fileKey, fileMetadata)).toList();
     return FileNode(
-      fileMetadata.localeFile.fileName,
+      fileKey,
       NodeListNodeValue(nodes),
       fileMetadata,
       imports,
@@ -63,7 +66,7 @@ class FileNode extends Node {
         '// ignore_for_file: unused_element, unused_field, camel_case_types, annotate_overrides, prefer_single_quotes');
     if (lintIgnore.isNotEmpty) {
       output.write(', ');
-      output.writeAll(lintIgnore);
+      output.writeAll(lintIgnore, ', ');
     }
     output.writeln('');
     output.writeln('// GENERATED FILE, do not edit!');
@@ -92,18 +95,10 @@ String _cardinal(int count, {String? zero, String? one, String? two, String? few
 ''');
     }
     output.writeln('');
-
-    final cls = cb.Class((b) {
-      b.name = metadata.localeFile.pureFileName.toPascalCase();
-      b.implements.add(cb.Reference(Constants.i69nMessageBundle));
-      b.constructors.add(cb.Constructor((c) {
-        c.constant = true;
-      }));
-    });
-    final clsStrBuffer = cls.accept(cb.DartEmitter());
-    final clsStr = clsStrBuffer.toString();
+    final clsStr = buildClasses({});
     log(clsStr);
-    output.write(clsStrBuffer);
+    output.write(clsStr);
+
     try {
       var formatter = DartFormatter(
         languageVersion: DartFormatter.latestShortStyleLanguageVersion,
