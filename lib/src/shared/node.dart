@@ -373,9 +373,4 @@ class ConfigNode extends Node {
     }
     return null;
   }
-
-  bool hasFlag(String flag) {
-    final configKey = '${_configKey}_$flag';
-    return key.key.startsWith(configKey);
-  }
 }
