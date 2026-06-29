@@ -130,9 +130,6 @@ class Node extends NodeValue<NodeValue> {
   Node(this.key, super.value);
 
   factory Node.create(dynamic key, dynamic value, NodeKey? parentKey, FileMetadata metadata) {
-    if (key is NodeKey) {
-      parentKey = key;
-    }
     final nodeKey = NodeKey.create(key, parentKey, metadata);
     final configNode = ConfigNode.create(nodeKey, value);
     if (configNode != null) {
