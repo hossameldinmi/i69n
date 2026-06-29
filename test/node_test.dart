@@ -26,4 +26,14 @@ void main() {
   test('StringListNodeValue.create throws on an unsupported value type', () {
     expect(() => StringListNodeValue.create(42), throwsException);
   });
+
+  test('a message calling _plural( is classified as grammatical', () {
+    final v = NodeValue.create("\${_plural(n, other: '\$n')}", null, meta);
+    expect(v, isA<GrammaticalNumberNodeValue>());
+  });
+
+  test('a message merely containing the word "plural" stays a plain string', () {
+    final v = NodeValue.create('Select the plural form', null, meta);
+    expect(v, isA<StringNodeValue>());
+  });
 }

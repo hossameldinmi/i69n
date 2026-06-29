@@ -323,17 +323,18 @@ enum GrammaticalNumberType { plural, ordinal, cardinal }
 
 class GrammaticalNumberNodeValue extends NodeValue<String> {
   final GrammaticalNumberType _type;
-  static final _regex = RegExp(r'plural|ordinal|cardinal');
+  // Matches an actual helper call (`_plural(`, `_ordinal(`, `_cardinal(`) so a
+  // message that merely contains the word "plural" is not misclassified.
+  static final _regex = RegExp(r'_(plural|ordinal|cardinal)\(');
   GrammaticalNumberNodeValue(super.value, this._type);
 
-  static GrammaticalNumberNodeValue? create(dynamic value) {
-    if (_regex.hasMatch(value)) {
-      return GrammaticalNumberNodeValue(
-        value,
-        GrammaticalNumberType.values.firstWhere((e) => e.name == _regex.firstMatch(value)!.group(0)!),
-      );
-    }
-    return null;
+  static GrammaticalNumberNodeValue? create(String value) {
+    final match = _regex.firstMatch(value);
+    if (match == null) return null;
+    return GrammaticalNumberNodeValue(
+      value,
+      GrammaticalNumberType.values.firstWhere((e) => e.name == match.group(1)!),
+    );
   }
 
   bool isType(GrammaticalNumberType type) => this._type == type;
