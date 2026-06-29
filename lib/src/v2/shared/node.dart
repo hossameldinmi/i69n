@@ -60,12 +60,19 @@ class NodeKey extends Equatable {
 
   bool get hasParent => parent != null;
 
+  /// The locale-independent class name (e.g. `GenericExampleMessages`). The root
+  /// key already carries the default object name (locale suffix stripped).
   String get fullKey {
     if (hasParent) {
       return '${key.toPascalCase()}${parent!.fullKey.toPascalCase()}';
     }
     return key.toPascalCase();
   }
+
+  /// The generated class name. For the default locale this equals [fullKey];
+  /// for a locale file it appends the locale suffix (e.g.
+  /// `GenericExampleMessages_cs`), matching the v1 generator.
+  String get objectName => metadata.isDefault ? fullKey : '${fullKey}_${metadata.localeName}';
 
   /// Dotted runtime path used in `operator[]` error messages. The root resolves
   /// to the file's language code; descendants append their raw key.
@@ -211,21 +218,32 @@ class Node extends NodeValue<NodeValue> {
 
   String _renderClass(Set<String> inheritedFlags) {
     final b = StringBuffer();
-    final className = key.fullKey;
+    final className = key.objectName;
+    final isDefault = key.metadata.isDefault;
     final implementsName = flagValue('implements');
-    final implementsClause =
-        implementsName != null ? '${Constants.i69nMessageBundle}, $implementsName' : Constants.i69nMessageBundle;
-    b.writeln('class $className implements $implementsClause {');
+    if (isDefault) {
+      final implementsClause =
+          implementsName != null ? '${Constants.i69nMessageBundle}, $implementsName' : Constants.i69nMessageBundle;
+      b.writeln('class $className implements $implementsClause {');
+    } else {
+      // Locale files extend the default-locale class so missing keys fall back.
+      final implementsClause = implementsName != null ? ' implements $implementsName' : '';
+      b.writeln('class $className extends ${key.fullKey}$implementsClause {');
+    }
     if (key.hasParent) {
-      b.writeln('final ${key.parent!.fullKey} _parent;');
-      b.writeln('const $className(this._parent);');
+      b.writeln('final ${key.parent!.objectName} _parent;');
+      if (isDefault) {
+        b.writeln('const $className(this._parent);');
+      } else {
+        b.writeln('const $className(this._parent) : super(_parent);');
+      }
     } else {
       b.writeln('const $className();');
     }
     final escape = hasFlag('noescape') ? (String s) => s : escapeDartString;
     for (final child in _childNodes) {
       if (child.isClassNode) {
-        b.writeln('${child.key.fullKey} get ${child.key.key} => ${child.key.fullKey}(this);');
+        b.writeln('${child.key.objectName} get ${child.key.key} => ${child.key.objectName}(this);');
       } else {
         final literal = escape(child.value.value.toString());
         final childKey = child.key;
@@ -266,11 +284,16 @@ class Node extends NodeValue<NodeValue> {
       for (final child in _childNodes) {
         b.writeln("case '${child.key.key}': return ${child.key.key};");
       }
-      final nothrow = hasFlag('nothrow') || inheritedFlags.contains('nothrow');
-      if (nothrow) {
-        b.writeln(r"default: throw Exception('Message $key doesn\'t exist in $this');");
+      if (!key.metadata.isDefault) {
+        // Locale classes delegate unknown keys to the default-locale superclass.
+        b.writeln('default: return super[key];');
       } else {
-        b.writeln('default: return key;');
+        final nothrow = hasFlag('nothrow') || inheritedFlags.contains('nothrow');
+        if (nothrow) {
+          b.writeln(r"default: throw Exception('Message $key doesn\'t exist in $this');");
+        } else {
+          b.writeln('default: return key;');
+        }
       }
       b.writeln('}');
     }

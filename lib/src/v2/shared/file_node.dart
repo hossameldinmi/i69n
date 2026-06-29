@@ -18,14 +18,17 @@ class FileNode extends Node {
 
   factory FileNode.parseMap(String filePath, Map<dynamic, dynamic> map) {
     final file = LocaleFile(filePath);
-    NodeKey fileKey = NodeKey(file.pureFileName.toPascalCase(), null, FileMetadata(file, true, 'en', 'en'));
+    // The root class is always named after the default-locale object (locale
+    // suffix stripped); locale files extend it.
+    final defaultObjectName = file.pureFileName.split('_').first.toPascalCase();
+    NodeKey fileKey = NodeKey(defaultObjectName, null, FileMetadata(file, true, 'en', 'en'));
     List<Node> nodes = map.entries
         .map((entry) => Node.create(entry.key, entry.value, fileKey, FileMetadata(file, true, 'en', 'en')))
         .toList();
     final configNodes = _getConfigNodes(nodes);
     final imports = _getImports(configNodes);
     final fileMetadata = FileMetadata.fromData(configNodes, file);
-    fileKey = NodeKey(file.pureFileName.toPascalCase(), null, fileMetadata);
+    fileKey = NodeKey(defaultObjectName, null, fileMetadata);
     final ignores = _getIgnores(configNodes);
     nodes = map.entries.map((entry) => Node.create(entry.key, entry.value, fileKey, fileMetadata)).toList();
     return FileNode(
@@ -70,7 +73,12 @@ class FileNode extends Node {
     }
     output.writeln('');
     output.writeln('// GENERATED FILE, do not edit!');
+    output.writeln('// dart format off');
     output.writeln("import 'package:i69n/i69n.dart' as ${Constants.i69n};");
+    // Locale files import the default-locale file they extend.
+    if (!metadata.isDefault) {
+      output.writeln("import '${metadata.localeFile.pureFileName.split('_').first}.i69n.dart';");
+    }
     imports.map((e) => "import '$e';").forEach((e) => output.writeln(e));
     output.writeln('');
     output.writeln("String get _languageCode => '${metadata.languageCode}';");
