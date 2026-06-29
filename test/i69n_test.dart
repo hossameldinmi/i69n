@@ -2,6 +2,7 @@
 import 'package:build/build.dart';
 import 'package:i69n/i69n.dart';
 import 'package:i69n/src/i69n_impl.dart';
+import 'package:i69n/src/v2/utils/string_extensions.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 

@@ -7,24 +7,30 @@ extension StringExtensions on String {
 /// Escapes a Dart string literal: converts tab/newline/carriage-return to their
 /// backslash form so the value is a valid single-line `"..."` literal. Surrogate
 /// pairs (emoji) are preserved. All other characters pass through unchanged.
-String escapeDartString(String string) {
+String? escapeDartString(String? string) {
+  if (string == null) return null;
   if (string.isEmpty) return string;
-  final sb = StringBuffer();
-  for (final c in string.runes) {
+
+  var sb = StringBuffer();
+  // Iterate over the Unicode code points (runes)
+  for (var c in string.runes) {
     switch (c) {
-      case 9: // \t
+      case 9: // \t (Horizontal Tab)
         sb.write('\\t');
         break;
-      case 10: // \n
+      case 10: // \n (Line Feed)
         sb.write('\\n');
         break;
-      case 13: // \r
+      case 13: // \r (Carriage Return)
         sb.write('\\r');
         break;
       default:
+        // For all other code points, convert the code point back to its string representation
+        // This correctly handles both single-unit characters and surrogate pairs (emojis)
         sb.writeCharCode(c);
         break;
     }
   }
   return sb.toString();
 }
+

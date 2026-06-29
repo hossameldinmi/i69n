@@ -70,7 +70,7 @@ class InvoiceTestMessages implements i69n.I69nMessageBundle {
   String get create => "Create invoice";
   String get delete => "Delete  invoice";
   String get help => "Use this function to generate new invoices and stuff. Awesome!";
-  String count(int cnt) => "You have created $cnt ${_plural(cnt, one:'invoice', many:'invoices')}.";
+  String count(int cnt) => "You have created $cnt ${_plural(cnt, one: 'invoice', many: 'invoices')}.";
   String get something => "Let\'s go!";
   Object operator [](String key) {
     var index = key.indexOf('.');
@@ -84,9 +84,10 @@ class InvoiceTestMessages implements i69n.I69nMessageBundle {
 class ApplesTestMessages implements i69n.I69nMessageBundle {
   final TestMessages _parent;
   const ApplesTestMessages(this._parent);
-  String _apples(int cnt) => "${_plural(cnt, zero: 'no apples', one:'$cnt apple', many:'$cnt apples')}";
+  String _apples(int cnt) => "${_plural(cnt, zero: 'no apples', one: '$cnt apple', many: '$cnt apples')}";
   String count(int cnt) => "You have eaten ${_apples(cnt)}.";
-  String problematic(int count) => "${_plural(count, zero:'didn\'t find any tasks', one:'found 1 task', other: 'found $count tasks')}";
+  String problematic(int count) =>
+      "${_plural(count, zero: 'didn\'t find any tasks', one: 'found 1 task', other: 'found $count tasks')}";
   String get anotherProblem => "here\nthere";
   String get quotes => "Hello \"world\"!";
   String get quotes2 => "Hello \"world\"!";
