@@ -1,6 +1,5 @@
 import 'dart:core';
 import 'dart:developer';
-import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:i69n/src/constants.dart';
 import 'package:i69n/src/shared/file.dart';
@@ -21,46 +20,28 @@ class FileNode extends Node {
     // The root class is always named after the default-locale object (locale
     // suffix stripped); locale files extend it.
     final defaultObjectName = file.pureFileName.split('_').first.toPascalCase();
-    NodeKey fileKey = NodeKey(defaultObjectName, null, FileMetadata(file, true, 'en', 'en'));
-    List<Node> nodes = map.entries
-        .map((entry) => Node.create(entry.key, entry.value, fileKey, FileMetadata(file, true, 'en', 'en')))
-        .toList();
-    final configNodes = _getConfigNodes(nodes);
-    final imports = _getImports(configNodes);
-    final fileMetadata = FileMetadata.fromData(configNodes, file);
-    fileKey = NodeKey(defaultObjectName, null, fileMetadata);
-    final ignores = _getIgnores(configNodes);
-    nodes = map.entries.map((entry) => Node.create(entry.key, entry.value, fileKey, fileMetadata)).toList();
-    return FileNode(
-      fileKey,
-      NodeListNodeValue(nodes),
-      fileMetadata,
-      imports,
-      ignores,
-    );
+
+    // File-level configuration lives in top-level `_i69n_*` keys. Read it from
+    // the raw map so the node tree only has to be built once.
+    final imports = _configList(map, 'import').map((e) => Import(e)).toList();
+    final lintIgnore = _configList(map, 'lint_ignore');
+    final language = map['${_configPrefix}_language']?.toString() ?? '';
+
+    final metadata = FileMetadata.fromData(language, file);
+    final fileKey = NodeKey(defaultObjectName, null, metadata);
+    final nodes = map.entries.map((entry) => Node.create(entry.key, entry.value, fileKey, metadata)).toList();
+
+    return FileNode(fileKey, NodeListNodeValue(nodes), metadata, imports, lintIgnore);
   }
 
-  static List<ConfigNode> _getConfigNodes(Iterable<Node> nodes) {
-    return nodes.whereType<ConfigNode>().toList();
-  }
+  static const _configPrefix = '_i69n';
 
-  static List<Import> _getImports(List<ConfigNode> nodes) {
-    if (nodes.isEmpty) {
-      return [];
-    }
-    final firstNode = nodes.first;
-    final hasImportFlag = firstNode.hasFlag('import');
-    if (hasImportFlag) return firstNode.value.value.map((e) => Import(e)).toList();
-    return [];
-  }
-
-  static List<String> _getIgnores(List<ConfigNode> nodes) {
-    if (nodes.isEmpty) {
-      return [];
-    }
-    final ignoreNode = nodes.firstWhereOrNull((e) => e.hasFlag('lint_ignore'));
-    if (ignoreNode == null) return [];
-    return ignoreNode.value.value.map((e) => e).toList();
+  /// Parses a comma-separated `_i69n_<name>` file-level config value, or returns
+  /// an empty list when the key is absent.
+  static List<String> _configList(Map<dynamic, dynamic> map, String name) {
+    final raw = map['${_configPrefix}_$name'];
+    if (raw == null) return const [];
+    return StringListNodeValue.create(raw).value;
   }
 
   String build() {

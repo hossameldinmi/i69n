@@ -1,7 +1,5 @@
-import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:i69n/src/shared/file.dart';
-import 'package:i69n/src/shared/node.dart';
 
 class FileMetadata extends Equatable {
   final LocaleFile localeFile;
@@ -12,8 +10,8 @@ class FileMetadata extends Equatable {
   static final _twoCharsUpper = RegExp('^[A-Z]{2,3}\$');
   FileMetadata(this.localeFile, this.isDefault, this.localeName, this.languageCode);
 
-  factory FileMetadata.fromData(List<ConfigNode> nodes, LocaleFile localeFile) {
-    String languageCode = _getLanguage(nodes);
+  factory FileMetadata.fromData(String language, LocaleFile localeFile) {
+    String languageCode = language;
     final nameParts = localeFile.pureFileName.split('_');
     late bool isDefault;
     late String localeName;
@@ -48,11 +46,6 @@ class FileMetadata extends Equatable {
       }
     }
     return FileMetadata(localeFile, isDefault, localeName, languageCode);
-  }
-
-  static String _getLanguage(List<ConfigNode> nodes) {
-    final languageConfig = nodes.firstWhereOrNull((n) => n.hasFlag('language'));
-    return languageConfig?.value.value.first ?? '';
   }
 
   static String _renderFileNameError(String name) {
