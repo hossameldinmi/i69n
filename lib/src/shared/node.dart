@@ -44,14 +44,26 @@ class NodeKey extends Equatable {
 
   NodeKey(this.key, this.parent, this.metadata);
 
+  static final _identifier = RegExp(r'^[a-zA-Z_$][a-zA-Z0-9_$]*$');
+
+  /// Validates that a (parameter-stripped) message key is a usable Dart
+  /// identifier. Keys are emitted verbatim as getters, methods and `switch`
+  /// cases, so an invalid one would silently produce uncompilable output.
+  static String _checkKey(String key) {
+    if (!_identifier.hasMatch(key)) {
+      throw Exception('Invalid message key "$key": message keys must be valid Dart identifiers.');
+    }
+    return key;
+  }
+
   factory NodeKey.create(dynamic key, NodeKey? parent, FileMetadata metadata) {
     if (key is String) {
       if (key.contains('(')) {
         return ParametrizedNodeKey.fromKey(key, parent, metadata);
       }
-      return NodeKey(key, parent, metadata);
+      return NodeKey(_checkKey(key), parent, metadata);
     }
-    return NodeKey(key.toString(), parent, metadata);
+    return NodeKey(_checkKey(key.toString()), parent, metadata);
   }
   bool startsWith(String pattern) => key.startsWith(pattern);
 
@@ -108,7 +120,7 @@ class ParametrizedNodeKey extends NodeKey {
         }
       }
     }
-    return ParametrizedNodeKey(baseKey, parent, parameters, metadata);
+    return ParametrizedNodeKey(NodeKey._checkKey(baseKey), parent, parameters, metadata);
   }
 
   @override

@@ -18,9 +18,12 @@ void main() {
     expect(() => NodeValue.create(42, null, meta), throwsException);
   });
 
-  test('NodeKey.create stringifies a non-string key', () {
-    final k = NodeKey.create(42, null, meta);
-    expect(k.key, '42');
+  test('NodeKey.create rejects a key that is not a valid Dart identifier', () {
+    expect(() => NodeKey.create(42, null, meta), throwsException);
+  });
+
+  test('NodeKey.create rejects a key containing a dot', () {
+    expect(() => NodeKey.create('foo.bar', null, meta), throwsException);
   });
 
   test('StringListNodeValue.create throws on an unsupported value type', () {
