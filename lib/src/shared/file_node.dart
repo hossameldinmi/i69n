@@ -1,5 +1,3 @@
-import 'dart:core';
-import 'dart:developer';
 import 'package:dart_style/dart_style.dart';
 import 'package:i69n/src/constants.dart';
 import 'package:i69n/src/shared/file.dart';
@@ -84,9 +82,7 @@ String _cardinal(int count, {String? zero, String? one, String? two, String? few
 ''');
     }
     output.writeln('');
-    final clsStr = buildClasses({});
-    log(clsStr);
-    output.write(clsStr);
+    output.write(buildClasses({}));
 
     try {
       var formatter = DartFormatter(
