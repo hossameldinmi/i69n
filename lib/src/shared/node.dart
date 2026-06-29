@@ -137,9 +137,10 @@ class Parameter extends Equatable {
   List<Object> get props => [name, type];
 }
 
-class Node extends NodeValue<NodeValue> {
+class Node extends Equatable {
   final NodeKey key;
-  Node(this.key, super.value);
+  final NodeValue value;
+  Node(this.key, this.value);
 
   factory Node.create(dynamic key, dynamic value, NodeKey? parentKey, FileMetadata metadata) {
     final nodeKey = NodeKey.create(key, parentKey, metadata);
