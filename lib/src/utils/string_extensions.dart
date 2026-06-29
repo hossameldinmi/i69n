@@ -7,8 +7,7 @@ extension StringExtensions on String {
 /// Escapes a Dart string literal: converts tab/newline/carriage-return to their
 /// backslash form so the value is a valid single-line `"..."` literal. Surrogate
 /// pairs (emoji) are preserved. All other characters pass through unchanged.
-String? escapeDartString(String? string) {
-  if (string == null) return null;
+String escapeDartString(String string) {
   if (string.isEmpty) return string;
 
   var sb = StringBuffer();
