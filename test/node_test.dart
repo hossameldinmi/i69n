@@ -1,6 +1,6 @@
-import 'package:i69n/src/v2/shared/file.dart';
-import 'package:i69n/src/v2/shared/file_metadata.dart';
-import 'package:i69n/src/v2/shared/node.dart';
+import 'package:i69n/src/shared/file.dart';
+import 'package:i69n/src/shared/file_metadata.dart';
+import 'package:i69n/src/shared/node.dart';
 import 'package:test/test.dart';
 
 /// Covers the value/key factory edge branches: list values, non-string keys and

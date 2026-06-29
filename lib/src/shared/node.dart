@@ -1,8 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
-import 'package:i69n/src/v2/constants.dart';
-import 'package:i69n/src/v2/shared/file_metadata.dart';
-import 'package:i69n/src/v2/utils/string_extensions.dart';
+import 'package:i69n/src/constants.dart';
+import 'package:i69n/src/shared/file_metadata.dart';
+import 'package:i69n/src/utils/string_extensions.dart';
 
 class Import extends Equatable {
   final String value;
@@ -71,7 +71,7 @@ class NodeKey extends Equatable {
 
   /// The generated class name. For the default locale this equals [fullKey];
   /// for a locale file it appends the locale suffix (e.g.
-  /// `GenericExampleMessages_cs`), matching the v1 generator.
+  /// `GenericExampleMessages_cs`).
   String get objectName => metadata.isDefault ? fullKey : '${fullKey}_${metadata.localeName}';
 
   /// Dotted runtime path used in `operator[]` error messages. The root resolves

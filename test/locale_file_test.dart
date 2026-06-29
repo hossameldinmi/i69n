@@ -1,4 +1,4 @@
-import 'package:i69n/src/v2/shared/file.dart';
+import 'package:i69n/src/shared/file.dart';
 import 'package:test/test.dart';
 
 void main() {

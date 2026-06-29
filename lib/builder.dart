@@ -5,14 +5,14 @@
 import 'dart:convert';
 
 import 'package:build/build.dart';
-import 'package:i69n/src/v2/shared/file_node.dart';
+import 'package:i69n/src/shared/file_node.dart';
 import 'package:yaml/yaml.dart';
 
 Builder yamlBasedBuilder(BuilderOptions options) => YamlBasedBuilder(options);
 
 Builder jsonBasedBuilder(BuilderOptions options) => JsonBasedBuilder(options);
 
-/// Generates Dart message bundles from `.i69n.yaml` files using the v2 pipeline.
+/// Generates Dart message bundles from `.i69n.yaml` files.
 class YamlBasedBuilder implements Builder {
   const YamlBasedBuilder(this.options);
 
@@ -36,7 +36,7 @@ class YamlBasedBuilder implements Builder {
   };
 }
 
-/// Generates Dart message bundles from `.i69n.json` files using the v2 pipeline.
+/// Generates Dart message bundles from `.i69n.json` files.
 class JsonBasedBuilder implements Builder {
   const JsonBasedBuilder(this.options);
 

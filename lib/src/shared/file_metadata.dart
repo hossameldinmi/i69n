@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
-import 'package:i69n/src/v2/shared/file.dart';
-import 'package:i69n/src/v2/shared/node.dart';
+import 'package:i69n/src/shared/file.dart';
+import 'package:i69n/src/shared/node.dart';
 
 class FileMetadata extends Equatable {
   final LocaleFile localeFile;

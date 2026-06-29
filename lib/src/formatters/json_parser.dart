@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:i69n/src/v2/formatters/base_parser.dart';
-import 'package:i69n/src/v2/shared/file_node.dart';
+import 'package:i69n/src/formatters/base_parser.dart';
+import 'package:i69n/src/shared/file_node.dart';
 
 class JsonParser implements BaseParser {
   final String filePath;

@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:dart_style/dart_style.dart';
-import 'package:i69n/src/v2/formatters/json_parser.dart';
-import 'package:i69n/src/v2/formatters/yaml_parser.dart';
-import 'package:i69n/src/v2/shared/file_node.dart';
+import 'package:i69n/src/formatters/json_parser.dart';
+import 'package:i69n/src/formatters/yaml_parser.dart';
+import 'package:i69n/src/shared/file_node.dart';
 
 class Fixture {
   static Future<void> testParsing(String fileName, Future<void> Function(String filePath, FileNode actual) test) async {

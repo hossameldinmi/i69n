@@ -1,4 +1,4 @@
-import 'package:i69n/src/v2/shared/file_node.dart';
+import 'package:i69n/src/shared/file_node.dart';
 import 'package:test/test.dart';
 
 /// Focused unit tests for `build()` branches not exercised by the full-file

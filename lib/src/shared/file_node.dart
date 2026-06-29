@@ -2,11 +2,11 @@ import 'dart:core';
 import 'dart:developer';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
-import 'package:i69n/src/v2/constants.dart';
-import 'package:i69n/src/v2/shared/file.dart';
-import 'package:i69n/src/v2/shared/file_metadata.dart';
-import 'package:i69n/src/v2/shared/node.dart';
-import 'package:i69n/src/v2/utils/string_extensions.dart';
+import 'package:i69n/src/constants.dart';
+import 'package:i69n/src/shared/file.dart';
+import 'package:i69n/src/shared/file_metadata.dart';
+import 'package:i69n/src/shared/node.dart';
+import 'package:i69n/src/utils/string_extensions.dart';
 
 class FileNode extends Node {
   final FileMetadata metadata;
