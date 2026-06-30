@@ -5,7 +5,6 @@ import 'mock/remoteMessages.i69n.dart';
 void main() {
   group('remote bundle end-to-end', () {
     const m = RemoteMessages();
-
     test('baked defaults resolve before any load', () {
       expect(m.title, 'Welcome');
       expect(m.greeting('Sam'), 'Hi Sam');

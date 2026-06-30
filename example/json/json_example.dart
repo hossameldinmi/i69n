@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'package:i69n/i69n.dart' as i69n;
 
-import 'yaml/exampleMessages.i69n.dart';
-import 'yaml/exampleMessages_cs.i69n.dart' deferred as cs;
+import 'exampleMessages.i69n.dart';
+import 'exampleMessages_cs.i69n.dart' deferred as cs;
 
 void main() async {
   print('Hello from i69n!');
