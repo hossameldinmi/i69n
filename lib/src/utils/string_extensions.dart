@@ -33,3 +33,36 @@ String escapeDartString(String string) {
   return sb.toString();
 }
 
+/// Escapes [s] for embedding in a generated **double-quoted** Dart string
+/// literal whose runtime value must equal [s] verbatim. Unlike
+/// [escapeDartString], this also escapes `$` and `"` so the generated file does
+/// not Dart-interpolate the template — the runtime interpreter does.
+String escapeTemplate(String s) {
+  final sb = StringBuffer();
+  for (final c in s.runes) {
+    switch (c) {
+      case 92: // backslash
+        sb.write(r'\\');
+        break;
+      case 34: // "
+        sb.write(r'\"');
+        break;
+      case 36: // $
+        sb.write(r'\$');
+        break;
+      case 9:
+        sb.write(r'\t');
+        break;
+      case 10:
+        sb.write(r'\n');
+        break;
+      case 13:
+        sb.write(r'\r');
+        break;
+      default:
+        sb.writeCharCode(c);
+    }
+  }
+  return sb.toString();
+}
+

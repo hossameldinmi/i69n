@@ -94,6 +94,14 @@ class NodeKey extends Equatable {
     }
     return metadata.languageCode;
   }
+
+  /// Dotted path of raw keys with no locale prefix (e.g. `home.title`), used as
+  /// the runtime store / `_baked` lookup key. The file root resolves to `''`.
+  String get messagePath {
+    if (parent == null) return '';
+    final p = parent!.messagePath;
+    return p.isEmpty ? key : '$p.$key';
+  }
 }
 
 class ParametrizedNodeKey extends NodeKey {
@@ -226,6 +234,24 @@ class Node extends Equatable {
     return buffer.toString();
   }
 
+  /// Collects every leaf message in this subtree as `messagePath -> template`,
+  /// with each template escaped for embedding in a Dart string literal.
+  Map<String, String> collectBaked() {
+    final out = <String, String>{};
+    void walk(Node n) {
+      for (final child in n._childNodes) {
+        if (child.isClassNode) {
+          walk(child);
+        } else {
+          out[child.key.messagePath] = escapeTemplate(child.value.value.toString());
+        }
+      }
+    }
+
+    walk(this);
+    return out;
+  }
+
   String _renderClass(Set<String> inheritedFlags) {
     final b = StringBuffer();
     final className = key.objectName;
@@ -250,10 +276,21 @@ class Node extends Equatable {
     } else {
       b.writeln('const $className();');
     }
+    final remote = hasFlag('remote') || inheritedFlags.contains('remote');
     final escape = hasFlag('noescape') ? (String s) => s : escapeDartString;
     for (final child in _childNodes) {
       if (child.isClassNode) {
         b.writeln('${child.key.objectName} get ${child.key.key} => ${child.key.objectName}(this);');
+      } else if (remote) {
+        final childKey = child.key;
+        final mp = childKey.messagePath;
+        if (childKey is ParametrizedNodeKey) {
+          final params = childKey.parameters.map((p) => '${p.type} ${p.name}').join(', ');
+          final args = '{${childKey.parameters.map((p) => "'${p.name}': ${p.name}").join(', ')}}';
+          b.writeln("String ${childKey.key}($params) => i69n.tr(_localeName, _languageCode, '$mp', $args, _baked);");
+        } else {
+          b.writeln("String get ${childKey.key} => i69n.tr(_localeName, _languageCode, '$mp', const {}, _baked);");
+        }
       } else {
         final literal = escape(child.value.value.toString());
         final childKey = child.key;

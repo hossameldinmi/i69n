@@ -63,25 +63,37 @@ class FileNode extends Node {
     output.writeln("String get _languageCode => '${metadata.languageCode}';");
     output.writeln("String get _localeName => '${metadata.localeName}';");
     output.writeln('');
-    if (hasPluralNode) {
-      output.write('''
+    final remote = hasFlag('remote');
+    if (!remote) {
+      if (hasPluralNode) {
+        output.write('''
 String _plural(int count, {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
     i69n.plural(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
 ''');
-    }
-    if (hasOrdinalNode) {
-      output.write('''
+      }
+      if (hasOrdinalNode) {
+        output.write('''
 String _ordinal(int count, {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
     i69n.ordinal(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
 ''');
-    }
-    if (hasCardinalNode) {
-      output.write('''
+      }
+      if (hasCardinalNode) {
+        output.write('''
 String _cardinal(int count, {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
     i69n.cardinal(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
 ''');
+      }
     }
     output.writeln('');
+    if (remote) {
+      final baked = collectBaked();
+      output.writeln('const Map<String, String> _baked = {');
+      baked.forEach((k, v) {
+        output.writeln('  \'$k\': "$v",');
+      });
+      output.writeln('};');
+      output.writeln('');
+    }
     output.write(buildClasses({}));
 
     try {
