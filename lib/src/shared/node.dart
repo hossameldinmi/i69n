@@ -266,6 +266,7 @@ class Node extends Equatable {
       final implementsClause = implementsName != null ? ' implements $implementsName' : '';
       b.writeln('class $className extends ${key.fullKey}$implementsClause {');
     }
+    final remote = hasFlag('remote') || inheritedFlags.contains('remote');
     if (key.hasParent) {
       b.writeln('final ${key.parent!.objectName} _parent;');
       if (isDefault) {
@@ -273,10 +274,19 @@ class Node extends Equatable {
       } else {
         b.writeln('const $className(this._parent) : super(_parent);');
       }
+      if (remote) {
+        // Child bundles read the data loaded into the root via the parent chain.
+        b.writeln('Map<String, String> get _messages => _parent._messages;');
+      }
     } else {
-      b.writeln('const $className();');
+      // A remote root holds its loaded data, so it cannot be const.
+      b.writeln('${remote ? '' : 'const '}$className();');
+      if (remote) {
+        b.writeln('final Map<String, String> _data = {};');
+        b.writeln('void load(Map data) { _data..clear()..addAll(i69n.flattenMessages(data)); }');
+        b.writeln('Map<String, String> get _messages => _data;');
+      }
     }
-    final remote = hasFlag('remote') || inheritedFlags.contains('remote');
     final escape = hasFlag('noescape') ? (String s) => s : escapeDartString;
     for (final child in _childNodes) {
       if (child.isClassNode) {
@@ -287,9 +297,9 @@ class Node extends Equatable {
         if (childKey is ParametrizedNodeKey) {
           final params = childKey.parameters.map((p) => '${p.type} ${p.name}').join(', ');
           final args = '{${childKey.parameters.map((p) => "'${p.name}': ${p.name}").join(', ')}}';
-          b.writeln("String ${childKey.key}($params) => i69n.tr(_localeName, _languageCode, '$mp', $args, _baked);");
+          b.writeln("String ${childKey.key}($params) => i69n.tr(_messages, _baked, '$mp', $args, _languageCode);");
         } else {
-          b.writeln("String get ${childKey.key} => i69n.tr(_localeName, _languageCode, '$mp', const {}, _baked);");
+          b.writeln("String get ${childKey.key} => i69n.tr(_messages, _baked, '$mp', const {}, _languageCode);");
         }
       } else {
         final literal = escape(child.value.value.toString());

@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 import 'dart:convert';
 
-import 'package:i69n/i69n.dart' as i69n;
-
 import 'remoteMessages.i69n.dart';
 
 void main() {
-  const m = RemoteMessages();
+  final m = RemoteMessages();
 
   // Before any remote data is loaded, accessors resolve to the values baked in
   // at build time (the `_baked` map generated from remoteMessages.i69n.yaml).
@@ -30,9 +28,11 @@ void main() {
 }
 ''') as Map;
 
-  // Inject it for the 'en' locale. Loaded values win over the baked defaults;
-  // any key the payload omits (e.g. `greeting`) still falls back to baked.
-  i69n.load('en', remotePayload);
+  // Inject it into this bundle instance. Loaded values win over the baked
+  // defaults; any key the payload omits (e.g. `greeting`) still falls back to
+  // baked. Share this one instance across your app (e.g. via an InheritedWidget
+  // or a provider) so every screen reads the loaded data.
+  m.load(remotePayload);
 
   print('--- after remote load ---');
   print(m.title); // Greetings  (overridden)

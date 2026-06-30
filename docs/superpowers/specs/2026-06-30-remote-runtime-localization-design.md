@@ -22,7 +22,7 @@ be updated without a rebuild — while keeping i69n's typed, generated message A
 | 1 | Resolution model | **Remote-primary** — loaded data resolves first; values flow through the interpreter rather than native Dart literals (a `_baked` fallback layer is added by decision 5) |
 | 2 | Placeholder syntax | **Dart-style `$name` / `${name}`**, runtime-substituted (bare identifiers only, no Dart eval) |
 | 3 | Plural representation | **Keep `${_plural(...)}` string** — runtime mini-interpreter evaluates it |
-| 4 | Load API | **`load(String locale, Map data)`**, global registry keyed by locale |
+| 4 | Load API | **Per-instance `bundle.load(Map data)`** on the root bundle; data held on the instance (revised from the original global registry) |
 | 5 | Missing key | **Bundled default base layer** — codegen emits a `_baked` map; chain remote → baked → key |
 | 6 | Opt-in | **Per-file `_i69n: remote` flag** — non-flagged files generate exactly as today |
 
@@ -36,16 +36,21 @@ through an interpreter, plus a compiled-in `_baked` map holding the schema's own
 templates.
 
 Runtime: the caller fetches and decodes the remote payload (i69n stays free of
-HTTP and `package:yaml` dependencies) and calls `i69n.load(locale, map)`. Each
-accessor resolves a single key as:
+HTTP and `package:yaml` dependencies) and calls `bundle.load(map)` on the root
+bundle instance. The root holds the flattened data; nested bundles reach it
+through the `_parent` chain. Each accessor resolves a single key as:
 
 ```
-template = remoteStore[localeName]?[key]
-        ?? remoteStore[languageCode]?[key]
+template = bundleData[key]
         ?? _baked[key]
         ?? key                                  // never throws
 result   = interpret(template, args, languageCode)
 ```
+
+Because the root bundle holds mutable loaded data it is **not `const`**
+(`final m = RemoteMessages();`). A freshly constructed bundle is empty and
+resolves to baked defaults until `load` is called, so an app shares one loaded
+instance (DI / `InheritedWidget` / provider).
 
 The same resolution path serves baked defaults and remote overrides — one code
 path, uniform behavior. All values (baked and remote) flow through the
@@ -89,19 +94,29 @@ Parser requirements:
   descriptive `FormatException` (a malformed template is an authoring bug, fail
   loud at the interpreter boundary).
 
-### Component 2 — Store + load (`lib/i69n.dart`)
+### Component 2 — Runtime helpers (`lib/i69n.dart`)
 
 ```dart
-final Map<String, Map<String, String>> _store = {};   // locale -> dottedKey -> template
+Map<String, String> flattenMessages(Map data) { ... }  // nested -> dotted keys
 
-void load(String locale, Map data) { ... }             // flatten + store
-String? _lookup(String locale, String key) => _store[locale]?[key];
+String tr(Map<String, String> data, Map<String, String> baked, String key,
+    Map<String, Object?> args, String languageCode) {
+  final template = data[key] ?? baked[key] ?? key;
+  return interpret(template, args, languageCode);
+}
 ```
 
-- `load` recursively flattens nested `data` into dotted keys
-  (`{home: {title: 'x'}}` → `{'home.title': 'x'}`). Leaf values are strings;
+- `flattenMessages` recursively flattens nested `data` into dotted keys
+  (`{home: {title: 'x'}}` → `{'home.title': 'x'}`). Leaf values are stringified;
   any `_i69n*` config keys in the payload are ignored.
-- Calling `load` again for a locale replaces that locale's slice.
+- The generated root bundle owns the storage and the public `load`:
+  ```dart
+  final Map<String, String> _data = {};
+  void load(Map data) { _data..clear()..addAll(i69n.flattenMessages(data)); }
+  Map<String, String> get _messages => _data;        // children: => _parent._messages
+  ```
+- `tr` takes the bundle's `_messages` map directly — no global state. Calling
+  `load` again replaces the instance's data.
 
 ### Component 3 — Codegen changes (`lib/src/shared/node.dart`, `file_node.dart`)
 
@@ -110,10 +125,13 @@ child classes through the existing `inheritedFlags` mechanism).
 
 - **Leaf accessors** emit an interpreter call instead of a literal:
   ```dart
-  String get title => i69n.tr(_localeName, _languageCode, 'home.title', const {}, _baked);
-  String greeting(String name) => i69n.tr(_localeName, _languageCode, 'home.greeting', {'name': name}, _baked);
+  String get title => i69n.tr(_messages, _baked, 'home.title', const {}, _languageCode);
+  String greeting(String name) => i69n.tr(_messages, _baked, 'home.greeting', {'name': name}, _languageCode);
   ```
   where `i69n.tr` performs the resolution chain above then `interpret`s.
+- **Root bundle members** — a remote root emits `final Map<String,String> _data`,
+  `void load(Map)`, and `Map<String,String> get _messages => _data`; it is
+  non-`const`. Child bundles emit `get _messages => _parent._messages`.
 - **`messagePath`** — a new `NodeKey` getter giving the raw-key dotted path with
   no locale prefix (e.g. `home.title`), used as the store/baked key. Distinct
   from the existing `path` getter, which prefixes the language code for
@@ -132,11 +150,13 @@ child classes through the existing `inheritedFlags` mechanism).
 
 ### Locale bundles
 
-For a `remote` file with locale variants (`x_cs.i69n.yaml`), each locale file
-still generates its own bundle and its own `_baked` slice. At runtime the store
-is keyed by the locale string passed to `load`; a bundle reads
-`store[_localeName]` then falls back to `store[_languageCode]`, then its own
-`_baked`. Bundles remain `const` — no per-instance state.
+With per-instance loading the caller fetches the locale-appropriate payload and
+`load`s it into the bundle they hold, so locale selection is the caller's
+concern (which file/bundle they construct + which payload they fetch). Remote
+**locale-variant files** (`x_cs.i69n.yaml` with the `remote` flag) are out of
+scope here: a locale subclass `extends` the default class across files and
+cannot reach its private `_data`/`_messages`, which the per-instance model
+relies on. The supported path is a single `remote` default file per bundle.
 
 ## Error / fallback semantics
 
@@ -152,13 +172,16 @@ is keyed by the locale string passed to `load`; a bundle reads
    `_plural`/`_ordinal`/`_cardinal`; nested `${...}` inside an arg template;
    escaped `\'`; comma inside an arg string; missing arg → empty; malformed
    template → throws.
-2. **Store/flatten units** — nested → dotted flatten; `_i69n*` ignored;
-   `_localeName` → `_languageCode` fallback; re-`load` replaces slice.
+2. **Flatten / tr units** — nested → dotted flatten; `_i69n*` ignored;
+   non-string leaf stringified; `tr` chain (data wins → baked → key) + arg
+   interpolation + plural.
 3. **Codegen golden** — a `remote`-flagged fixture → expected generated Dart
-   (`_baked` map + `tr`-backed accessors + correct `$`-escaping).
-4. **End-to-end** — generate a remote bundle, `load` an overriding map, assert:
-   remote value wins; missing remote key falls back to baked; plural resolves
-   per locale; unknown key returns the key string.
+   (`_baked` map + non-const root with `_data`/`load`/`_messages` +
+   `tr`-backed accessors + correct `$`-escaping).
+4. **End-to-end** — construct a remote bundle, `load` an overriding map, assert:
+   loaded value wins; omitted key falls back to baked; plural resolves per
+   locale; nested `load` reaches sub-bundles; separate instances are
+   independent; unknown key returns the key string.
 5. **Backward compatibility** — existing non-`remote` goldens
    (`parsing_test`, `example_parity_test`) must stay byte-identical.
 

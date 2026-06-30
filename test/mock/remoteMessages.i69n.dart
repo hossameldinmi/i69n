@@ -14,13 +14,21 @@ const Map<String, String> _baked = {
 };
 
 class RemoteMessages implements i69n.I69nMessageBundle {
-  const RemoteMessages();
+  RemoteMessages();
+  final Map<String, String> _data = {};
+  void load(Map data) {
+    _data
+      ..clear()
+      ..addAll(i69n.flattenMessages(data));
+  }
+
+  Map<String, String> get _messages => _data;
   String get title =>
-      i69n.tr(_localeName, _languageCode, 'title', const {}, _baked);
+      i69n.tr(_messages, _baked, 'title', const {}, _languageCode);
   String greeting(String name) =>
-      i69n.tr(_localeName, _languageCode, 'greeting', {'name': name}, _baked);
+      i69n.tr(_messages, _baked, 'greeting', {'name': name}, _languageCode);
   String apples(int count) =>
-      i69n.tr(_localeName, _languageCode, 'apples', {'count': count}, _baked);
+      i69n.tr(_messages, _baked, 'apples', {'count': count}, _languageCode);
   HomeRemoteMessages get home => HomeRemoteMessages(this);
   Object operator [](String key) {
     var index = key.indexOf('.');
@@ -46,8 +54,9 @@ class RemoteMessages implements i69n.I69nMessageBundle {
 class HomeRemoteMessages implements i69n.I69nMessageBundle {
   final RemoteMessages _parent;
   const HomeRemoteMessages(this._parent);
+  Map<String, String> get _messages => _parent._messages;
   String get subtitle =>
-      i69n.tr(_localeName, _languageCode, 'home.subtitle', const {}, _baked);
+      i69n.tr(_messages, _baked, 'home.subtitle', const {}, _languageCode);
   Object operator [](String key) {
     var index = key.indexOf('.');
     if (index > 0) {

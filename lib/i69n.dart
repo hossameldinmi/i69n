@@ -99,17 +99,13 @@ String? _firstNotNull(List<String?> possibilities) {
   return possibilities.firstWhere((a) => a != null, orElse: () => '???');
 }
 
-/// Per-locale runtime message store: locale -> dotted message key -> template.
-final Map<String, Map<String, String>> _messageStore = {};
-
-/// Injects remote localization [data] (already decoded from JSON/YAML) for
-/// [locale]. Nested maps are flattened to dotted keys (`{home:{title:'x'}}` ->
-/// `{'home.title':'x'}`); any `_i69n*` config keys are ignored. Re-loading a
-/// locale replaces its previous slice.
-void load(String locale, Map data) {
-  final flat = <String, String>{};
-  _flatten(data, '', flat);
-  _messageStore[locale] = flat;
+/// Flattens decoded remote localization [data] into dotted message keys
+/// (`{home:{title:'x'}}` -> `{'home.title':'x'}`), ignoring any `_i69n*` config
+/// keys. A remote bundle's `load` uses this to populate its instance data.
+Map<String, String> flattenMessages(Map data) {
+  final out = <String, String>{};
+  _flatten(data, '', out);
+  return out;
 }
 
 void _flatten(Map data, String prefix, Map<String, String> out) {
@@ -125,10 +121,10 @@ void _flatten(Map data, String prefix, Map<String, String> out) {
   });
 }
 
-/// Resolves a single message: remote (by [localeName] then [languageCode]) wins,
-/// then the compiled-in [baked] template, then the [key] itself. The chosen
-/// template is interpreted against [args].
-String tr(String localeName, String languageCode, String key, Map<String, Object?> args, Map<String, String> baked) {
-  final template = _messageStore[localeName]?[key] ?? _messageStore[languageCode]?[key] ?? baked[key] ?? key;
+/// Resolves a single message against a bundle's loaded [data]: a loaded value
+/// wins, then the compiled-in [baked] template, then the [key] itself. The
+/// chosen template is interpreted against [args].
+String tr(Map<String, String> data, Map<String, String> baked, String key, Map<String, Object?> args, String languageCode) {
+  final template = data[key] ?? baked[key] ?? key;
   return interpret(template, args, languageCode);
 }

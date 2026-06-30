@@ -2,54 +2,47 @@ import 'package:i69n/i69n.dart' as i69n;
 import 'package:test/test.dart';
 
 void main() {
-  group('load + tr', () {
-    test('tr returns a loaded top-level value', () {
-      i69n.load('aa', {'title': 'Welcome'});
-      expect(i69n.tr('aa', 'aa', 'title', {}, {}), 'Welcome');
-    });
-
-    test('load flattens nested maps to dotted keys', () {
-      i69n.load('bb', {
+  group('flattenMessages', () {
+    test('flattens nested maps to dotted keys', () {
+      final flat = i69n.flattenMessages({
+        'title': 'Welcome',
         'home': {'subtitle': 'Home'}
       });
-      expect(i69n.tr('bb', 'bb', 'home.subtitle', {}, {}), 'Home');
+      expect(flat, {'title': 'Welcome', 'home.subtitle': 'Home'});
     });
 
-    test('tr falls back to baked when key absent from store', () {
-      i69n.load('cc', {'a': 'remoteA'});
-      expect(i69n.tr('cc', 'cc', 'b', {}, {'b': 'bakedB'}), 'bakedB');
+    test('ignores _i69n config keys', () {
+      final flat = i69n.flattenMessages({'_i69n': 'remote', '_i69n_language': 'en', 'msg': 'M'});
+      expect(flat, {'msg': 'M'});
     });
 
-    test('remote value wins over baked', () {
-      i69n.load('dd', {'a': 'remoteA'});
-      expect(i69n.tr('dd', 'dd', 'a', {}, {'a': 'bakedA'}), 'remoteA');
+    test('stringifies non-string leaf values', () {
+      final flat = i69n.flattenMessages({'n': 3});
+      expect(flat, {'n': '3'});
+    });
+  });
+
+  group('tr', () {
+    test('a loaded value wins over baked', () {
+      expect(i69n.tr({'a': 'loadedA'}, {'a': 'bakedA'}, 'a', {}, 'en'), 'loadedA');
     });
 
-    test('tr falls back to the key string when nothing matches', () {
-      expect(i69n.tr('ee', 'ee', 'missing', {}, {}), 'missing');
+    test('falls back to baked when key absent from data', () {
+      expect(i69n.tr({}, {'b': 'bakedB'}, 'b', {}, 'en'), 'bakedB');
     });
 
-    test('localeName falls back to languageCode', () {
-      i69n.load('en', {'x': 'fromEn'});
-      expect(i69n.tr('en_GB', 'en', 'x', {}, {}), 'fromEn');
+    test('falls back to the key string when nothing matches', () {
+      expect(i69n.tr({}, {}, 'missing', {}, 'en'), 'missing');
     });
 
-    test('_i69n config keys are ignored on load', () {
-      i69n.load('ff', {'_i69n': 'remote', '_i69n_language': 'ff', 'msg': 'M'});
-      expect(i69n.tr('ff', 'ff', 'msg', {}, {}), 'M');
-      expect(i69n.tr('ff', 'ff', '_i69n', {}, {}), '_i69n'); // not stored -> key fallback
+    test('interpolates args through the interpreter', () {
+      expect(i69n.tr({}, {'greeting': r'Hi $name'}, 'greeting', {'name': 'Sam'}, 'en'), 'Hi Sam');
     });
 
-    test('re-loading a locale replaces its slice', () {
-      i69n.load('gg', {'a': '1'});
-      i69n.load('gg', {'c': '2'});
-      expect(i69n.tr('gg', 'gg', 'c', {}, {}), '2');
-      expect(i69n.tr('gg', 'gg', 'a', {}, {}), 'a'); // gone -> key fallback
-    });
-
-    test('tr interpolates args through the interpreter', () {
-      i69n.load('hh', {'greeting': r'Hi $name'});
-      expect(i69n.tr('hh', 'hh', 'greeting', {'name': 'Sam'}, {}), 'Hi Sam');
+    test('resolves a plural template against the language code', () {
+      const tpl = r"${_plural(count, one: '$count apple', other: '$count apples')}";
+      expect(i69n.tr({}, {'apples': tpl}, 'apples', {'count': 1}, 'en'), '1 apple');
+      expect(i69n.tr({}, {'apples': tpl}, 'apples', {'count': 3}, 'en'), '3 apples');
     });
   });
 }

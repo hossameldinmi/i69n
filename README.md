@@ -445,20 +445,24 @@ apples(int count): "${_plural(count, one: '$count apple', other: '$count apples'
 ```
 
 The generated bundle still exposes the same typed API, but each accessor resolves
-through `i69n.tr(...)`: a loaded remote value wins, then the compiled-in default,
-then the key itself. Fetch and decode the payload yourself (i69n adds no HTTP or
-YAML runtime dependency) and inject it:
+through the bundle's loaded data: a loaded value wins, then the compiled-in
+default, then the key itself. Fetch and decode the payload yourself (i69n adds no
+HTTP or YAML runtime dependency) and inject it into the bundle with `load`:
 
 ```dart
-import 'package:i69n/i69n.dart' as i69n;
-
 final res = await http.get(Uri.parse('https://example.com/messages_cs.json'));
-i69n.load('cs', jsonDecode(res.body) as Map);
 
-const msg = RemoteMessages();
+final msg = RemoteMessages();      // not const: a remote bundle holds its data
+msg.load(jsonDecode(res.body) as Map);
+
 print(msg.title);          // remote value if loaded, else "Welcome"
 print(msg.apples(3));      // plural resolved via CLDR rules for the locale
 ```
+
+`load` lives on the root bundle and feeds every nested bundle (`msg.home...`).
+Each instance owns its data, so share the one loaded `msg` across your app (e.g.
+via an `InheritedWidget` or a provider) — a freshly constructed `RemoteMessages()`
+starts empty and resolves to baked defaults until you call `load`.
 
 Remote payloads use plain text with `$name` / `${name}` placeholders and the
 `_plural` / `_ordinal` / `_cardinal` forms — the same syntax as the build-time
