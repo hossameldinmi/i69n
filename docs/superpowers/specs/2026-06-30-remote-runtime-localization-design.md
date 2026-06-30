@@ -170,3 +170,9 @@ is keyed by the locale string passed to `load`; a bundle reads
   app's concern.
 - Caching parsed templates — possible later optimization, not required for
   correctness.
+- Message-to-message references (e.g. `${_otherMessage(x)}` calling a sibling
+  message method). The interpreter supports only `$ident` / `${ident}` and the
+  three grammatical calls `_plural` / `_ordinal` / `_cardinal`. A `remote` file
+  must not use cross-message references; an unknown function name in a template
+  raises a `FormatException`. Remote payloads use plain text (YAML/JSON native
+  escaping), not Dart-literal escaping.
