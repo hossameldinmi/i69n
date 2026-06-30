@@ -1,3 +1,11 @@
+## 3.6.0
+
+- added ukrainian plural language rules
+
+## 3.5.0
+
+- added "dart format off" to skip formatting and unnecessary VCS changes
+
 ## 3.4.0
 
 - fixed emojis: https://github.com/fnx-io/i69n/issues/14 
