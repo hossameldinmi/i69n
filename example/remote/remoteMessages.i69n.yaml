@@ -1,0 +1,7 @@
+_i69n: remote
+_i69n_language: en
+title: Welcome
+greeting(String name): Hi $name
+apples(int count): "${_plural(count, one: '$count apple', other: '$count apples')}"
+home:
+  subtitle: Home

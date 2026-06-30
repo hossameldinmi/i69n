@@ -431,6 +431,39 @@ or
 
 Now open the browser http://localhost:8080/ and watch the dev tools console.
 
+# Remote runtime localization
+
+Add the `remote` flag to a message file to back its accessors with values loaded
+at runtime instead of compile-time literals:
+
+```yaml
+_i69n: remote
+_i69n_language: en
+title: Welcome
+greeting(String name): Hi $name
+apples(int count): "${_plural(count, one: '$count apple', other: '$count apples')}"
+```
+
+The generated bundle still exposes the same typed API, but each accessor resolves
+through `i69n.tr(...)`: a loaded remote value wins, then the compiled-in default,
+then the key itself. Fetch and decode the payload yourself (i69n adds no HTTP or
+YAML runtime dependency) and inject it:
+
+```dart
+import 'package:i69n/i69n.dart' as i69n;
+
+final res = await http.get(Uri.parse('https://example.com/messages_cs.json'));
+i69n.load('cs', jsonDecode(res.body) as Map);
+
+const msg = RemoteMessages();
+print(msg.title);          // remote value if loaded, else "Welcome"
+print(msg.apples(3));      // plural resolved via CLDR rules for the locale
+```
+
+Remote payloads use plain text with `$name` / `${name}` placeholders and the
+`_plural` / `_ordinal` / `_cardinal` forms — the same syntax as the build-time
+file. They must not reference other messages.
+
 # Credits
 
 Created by [https://fnx.io](https://fnx.io).
