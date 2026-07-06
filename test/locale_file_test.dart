@@ -22,6 +22,14 @@ void main() {
       expect(localeFile.fileExtension, '.json');
       expect(localeFile.generatedFilePath, generatedFilePath);
     });
+    test('testMessages.i69n.jsonc', () async {
+      final localeFile = LocaleFile('$dir/testMessages.i69n.jsonc');
+      expect(localeFile.fileName, 'testMessages.i69n.jsonc');
+      expect(localeFile.directory, dir);
+      expect(localeFile.pureFileName, pureFileName);
+      expect(localeFile.fileExtension, '.jsonc');
+      expect(localeFile.generatedFilePath, generatedFilePath);
+    });
   });
   group('file_path_with_locale', () {
     final pureFileName = 'testMessages_ar';
@@ -42,6 +50,14 @@ void main() {
       expect(localeFile.fileExtension, '.json');
       expect(localeFile.generatedFilePath, generatedFilePath);
     });
+    test('testMessages_ar.i69n.jsonc', () async {
+      final localeFile = LocaleFile('$dir/testMessages_ar.i69n.jsonc');
+      expect(localeFile.fileName, 'testMessages_ar.i69n.jsonc');
+      expect(localeFile.directory, dir);
+      expect(localeFile.pureFileName, pureFileName);
+      expect(localeFile.fileExtension, '.jsonc');
+      expect(localeFile.generatedFilePath, generatedFilePath);
+    });
   });
   group('file_path_with_locale_code', () {
     final pureFileName = 'testMessages_ar_EG';
@@ -60,6 +76,14 @@ void main() {
       expect(localeFile.directory, dir);
       expect(localeFile.pureFileName, pureFileName);
       expect(localeFile.fileExtension, '.json');
+      expect(localeFile.generatedFilePath, generatedFilePath);
+    });
+    test('testMessages_ar_EG.i69n.jsonc', () async {
+      final localeFile = LocaleFile('$dir/testMessages_ar_EG.i69n.jsonc');
+      expect(localeFile.fileName, 'testMessages_ar_EG.i69n.jsonc');
+      expect(localeFile.directory, dir);
+      expect(localeFile.pureFileName, pureFileName);
+      expect(localeFile.fileExtension, '.jsonc');
       expect(localeFile.generatedFilePath, generatedFilePath);
     });
   });
