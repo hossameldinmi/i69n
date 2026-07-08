@@ -4,7 +4,9 @@ import 'package:test/test.dart';
 
 void main() {
   test('JsoncParser strips // and /* */ comments and trailing commas', () async {
-    final tmp = File('${Directory.systemTemp.path}/test.i69n.jsonc');
+    // No underscores in the basename: i69n treats `_xx` as a locale suffix, so
+    // an underscored temp name would fail FileMetadata's language-code parsing.
+    final tmp = File('${Directory.systemTemp.path}/jsoncprobe.i69n.jsonc');
     await tmp.writeAsString('''
 {
   // a line comment

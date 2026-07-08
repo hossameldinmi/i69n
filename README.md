@@ -97,6 +97,8 @@ i69n reads three input formats, distinguished by extension:
   translations inline.
 
 All three generate the same `.i69n.dart` output; pick whichever your team prefers.
+Use one input format per basename within a directory — `foo.i69n.json` and
+`foo.i69n.jsonc` in the same folder would both generate `foo.i69n.dart` and collide.
 
 Add `build_runner` as a dev_dependency and `i69n` as a dependency to `pubspec.yaml`:
 
