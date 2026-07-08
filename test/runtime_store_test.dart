@@ -20,6 +20,13 @@ void main() {
       final flat = i69n.flattenMessages({'n': 3});
       expect(flat, {'n': '3'});
     });
+
+    test('skips null leaves so the baked default wins', () {
+      final flat = i69n.flattenMessages({'title': null, 'msg': 'M'});
+      expect(flat, {'msg': 'M'});
+      // End to end: the null leaf must not shadow the baked template.
+      expect(i69n.tr(flat, {'title': 'Welcome'}, 'title', {}, 'en'), 'Welcome');
+    });
   });
 
   group('tr', () {

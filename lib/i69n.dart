@@ -119,6 +119,11 @@ void _flatten(Map data, String prefix, Map<String, String> out, int depth) {
     final key = k.toString();
     if (key.startsWith('_i69n')) return;
     final path = prefix.isEmpty ? key : '$prefix.$key';
+    if (v == null) {
+      // A null leaf means "no translation" — skip it so the baked default
+      // wins, instead of rendering the literal string "null".
+      return;
+    }
     if (v is Map) {
       _flatten(v, path, out, depth + 1);
     } else {
