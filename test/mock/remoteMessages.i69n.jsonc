@@ -1,0 +1,12 @@
+{
+  // Remote-flagged bundle: values are resolved at runtime via load().
+  "_i69n": "remote",
+  "_i69n_language": "en",
+  "title": "Welcome",
+  "greeting(String name)": "Hi $name",
+  "apples(int count)": "${_plural(count, one: '$count apple', other: '$count apples')}",
+  /* Nested sub-bundle. */
+  "home": {
+    "subtitle": "Home",
+  },
+}
