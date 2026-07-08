@@ -114,17 +114,22 @@ class ParametrizedNodeKey extends NodeKey {
     final parameters = <Parameter>[];
     if (openParenIndex != -1) {
       final closeParenIndex = key.indexOf(')', openParenIndex);
-      if (closeParenIndex != -1) {
-        final paramsString = key.substring(openParenIndex + 1, closeParenIndex);
-        if (paramsString.isNotEmpty) {
-          final paramParts = paramsString.split(',');
-          for (final paramPart in paramParts) {
-            final trimmedPart = paramPart.trim();
-            final parts = trimmedPart.split(' ');
-            if (parts.length == 2) {
-              parameters.add(Parameter(parts[1], parts[0]));
-            }
+      if (closeParenIndex == -1) {
+        throw Exception('Missing closing parenthesis in parametrized key "$key".');
+      }
+      final paramsString = key.substring(openParenIndex + 1, closeParenIndex);
+      if (paramsString.isNotEmpty) {
+        final paramParts = paramsString.split(',');
+        for (final paramPart in paramParts) {
+          final trimmedPart = paramPart.trim();
+          // Split on whitespace runs so "String  name" still parses as a pair;
+          // anything that is not exactly "<type> <name>" is a hard error rather
+          // than a silently dropped parameter.
+          final parts = trimmedPart.split(RegExp(r'\s+'));
+          if (parts.length != 2) {
+            throw Exception('Invalid parameter declaration "$trimmedPart" in key "$key". Expected "<type> <name>".');
           }
+          parameters.add(Parameter(parts[1], parts[0]));
         }
       }
     }

@@ -39,4 +39,26 @@ void main() {
     final v = NodeValue.create('Select the plural form', null, meta);
     expect(v, isA<StringNodeValue>());
   });
+
+  group('ParametrizedNodeKey.fromKey validation', () {
+    test('a missing closing parenthesis throws instead of dropping the clause', () {
+      expect(() => ParametrizedNodeKey.fromKey('greet(String name', null, meta), throwsException);
+    });
+
+    test('an unparseable parameter declaration throws instead of being skipped', () {
+      expect(() => ParametrizedNodeKey.fromKey('greet(Stringname)', null, meta), throwsException);
+    });
+
+    test('extra whitespace between type and name still parses', () {
+      final key = ParametrizedNodeKey.fromKey('greet(String  name)', null, meta);
+      expect(key.parameters, hasLength(1));
+      expect(key.parameters.single.type, 'String');
+      expect(key.parameters.single.name, 'name');
+    });
+
+    test('a well-formed multi-parameter key parses all parameters', () {
+      final key = ParametrizedNodeKey.fromKey('greet(String name, int count)', null, meta);
+      expect(key.parameters.map((p) => '${p.type} ${p.name}'), ['String name', 'int count']);
+    });
+  });
 }
