@@ -50,7 +50,7 @@ Run:
 ```bash
 grep -n "jsonc" pubspec.yaml
 ```
-Expected: a single `  jsonc: ^0.0.3` line inside the `dependencies:` block (above `dev_dependencies:`). If `dart pub add` placed it elsewhere, move it into `dependencies:` manually.
+Expected: a single `jsonc: ^0.0.3` line inside the `dependencies:` block (above `dev_dependencies:`). If `dart pub add` placed it elsewhere, move it into `dependencies:` manually.
 
 - [ ] **Step 4: Commit**
 

@@ -130,7 +130,7 @@ guard already applied to the json/yaml builders):
 
 ## Data flow
 
-```
+```text
 foo.i69n.jsonc
   -> (builder OR JsoncParser) reads string
   -> jsonc.decode  (strip comments + trailing commas, then json.decode)
