@@ -86,6 +86,18 @@ Add translations for different languages:
       create: Vytvořit fakturu
       delete: Smazat fakturu
 
+### Input formats
+
+i69n reads three input formats, distinguished by extension:
+
+* `.i69n.yaml` — YAML (shown above).
+* `.i69n.json` — strict JSON.
+* `.i69n.jsonc` — JSON with `//` line comments, `/* ... */` block comments, and
+  trailing commas. Otherwise identical to `.i69n.json`. Useful for annotating
+  translations inline.
+
+All three generate the same `.i69n.dart` output; pick whichever your team prefers.
+
 Add `build_runner` as a dev_dependency and `i69n` as a dependency to `pubspec.yaml`:
 
     dependencies:
