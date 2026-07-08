@@ -22,7 +22,7 @@ void registerResolver(String languageCode, CategoryResolver resolver) {
 }
 
 ///
-/// Same as ordinal.
+/// Same as cardinal.
 ///
 String plural(int count, String languageCode,
     {String? zero, String? one, String? two, String? few, String? many, String? other}) {
@@ -104,17 +104,23 @@ String? _firstNotNull(List<String?> possibilities) {
 /// keys. A remote bundle's `load` uses this to populate its instance data.
 Map<String, String> flattenMessages(Map data) {
   final out = <String, String>{};
-  _flatten(data, '', out);
+  _flatten(data, '', out, 0);
   return out;
 }
 
-void _flatten(Map data, String prefix, Map<String, String> out) {
+/// Defensive cap on nesting of untrusted remote payloads. Real bundles are a
+/// handful of levels deep; anything past this is ignored rather than recursed,
+/// so a pathologically nested payload cannot overflow the stack in `load`.
+const _maxFlattenDepth = 32;
+
+void _flatten(Map data, String prefix, Map<String, String> out, int depth) {
+  if (depth > _maxFlattenDepth) return;
   data.forEach((dynamic k, dynamic v) {
     final key = k.toString();
     if (key.startsWith('_i69n')) return;
     final path = prefix.isEmpty ? key : '$prefix.$key';
     if (v is Map) {
-      _flatten(v, path, out);
+      _flatten(v, path, out, depth + 1);
     } else {
       out[path] = v.toString();
     }
@@ -124,7 +130,25 @@ void _flatten(Map data, String prefix, Map<String, String> out) {
 /// Resolves a single message against a bundle's loaded [data]: a loaded value
 /// wins, then the compiled-in [baked] template, then the [key] itself. The
 /// chosen template is interpreted against [args].
+///
+/// Loaded values come from an untrusted remote source, so a malformed template
+/// (unterminated `${`, unknown function, non-int count, over-deep nesting)
+/// must not crash the caller: on failure it falls back to the compiled-in
+/// [baked] default, and finally to the raw [key]. A bad remote push therefore
+/// degrades to the built-in string instead of throwing out of a getter.
 String tr(Map<String, String> data, Map<String, String> baked, String key, Map<String, Object?> args, String languageCode) {
-  final template = data[key] ?? baked[key] ?? key;
-  return interpret(template, args, languageCode);
+  final loaded = data[key];
+  if (loaded != null) {
+    try {
+      return interpret(loaded, args, languageCode);
+    } catch (_) {
+      // Fall through to the baked default below.
+    }
+  }
+  final template = baked[key] ?? key;
+  try {
+    return interpret(template, args, languageCode);
+  } catch (_) {
+    return key;
+  }
 }

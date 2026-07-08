@@ -76,5 +76,13 @@ void main() {
     test('non-int plural arg throws FormatException', () {
       expect(() => interpret(r"${_plural(count, other: 'x')}", {'count': 'nope'}, 'en'), throwsFormatException);
     });
+
+    test('a malformed UNSELECTED branch does not throw (lazy evaluation)', () {
+      // count=1 selects `one`; the broken `other` branch must never be evaluated.
+      expect(
+        interpret(r"${_plural(count, one: 'ok', other: '${oops')}", {'count': 1}, 'en'),
+        'ok',
+      );
+    });
   });
 }

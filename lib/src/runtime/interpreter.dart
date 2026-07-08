@@ -1,15 +1,35 @@
 import 'package:i69n/i69n.dart' as i69n;
 
+/// Guards the mutual recursion `interpret` -> `_evalExpr` -> `interpret`
+/// (nested grammatical calls) against a hostile remote template. In practice
+/// nesting is already bounded by quote-escaping blow-up; this is a cheap
+/// defensive backstop so a crafted payload throws (and is caught by `tr`)
+/// instead of exhausting the stack.
+const _maxDepth = 32;
+
+/// Upper bound on interpreted output length, so a pathological remote template
+/// cannot balloon memory. Exceeding it throws (caught by `tr`).
+const _maxOutput = 1 << 20; // 1M chars
+
 /// Evaluates an i69n message [template] at runtime against [args].
 ///
 /// Supported syntax: `$ident`, `${ident}`, and the grammatical calls
 /// `_plural` / `_ordinal` / `_cardinal`. A missing identifier resolves to the
 /// empty string. Malformed `${...}` or an unknown function name throws a
 /// [FormatException].
-String interpret(String template, Map<String, Object?> args, String languageCode) {
+String interpret(String template, Map<String, Object?> args, String languageCode) =>
+    _interpret(template, args, languageCode, 0);
+
+String _interpret(String template, Map<String, Object?> args, String languageCode, int depth) {
+  if (depth > _maxDepth) {
+    throw FormatException('Template nesting too deep (>$_maxDepth levels)', template);
+  }
   final out = StringBuffer();
   var i = 0;
   while (i < template.length) {
+    if (out.length > _maxOutput) {
+      throw FormatException('Interpreted output exceeds $_maxOutput chars', template);
+    }
     final ch = template.codeUnitAt(i);
     if (ch == 0x24) {
       // $
@@ -20,7 +40,7 @@ String interpret(String template, Map<String, Object?> args, String languageCode
           throw FormatException('Unterminated "\${" in template', template, i);
         }
         final expr = template.substring(i + 2, end).trim();
-        out.write(_evalExpr(expr, args, languageCode));
+        out.write(_evalExpr(expr, args, languageCode, depth));
         i = end + 1;
       } else {
         final ident = _identAt(template, i + 1);
@@ -90,7 +110,7 @@ String _lookup(String ident, Map<String, Object?> args) => args[ident]?.toString
 
 /// Evaluates an expression found inside `${ ... }`: either a bare identifier or
 /// a grammatical call.
-String _evalExpr(String expr, Map<String, Object?> args, String lang) {
+String _evalExpr(String expr, Map<String, Object?> args, String lang, int depth) {
   final paren = expr.indexOf('(');
   if (paren < 0) return _lookup(expr, args);
 
@@ -110,26 +130,32 @@ String _evalExpr(String expr, Map<String, Object?> args, String lang) {
     throw FormatException('Argument "$countKey" is not an int ($countArg)', expr);
   }
 
+  // Keep every branch RAW (uninterpreted). The CLDR resolver picks exactly one
+  // form for this count/locale; only that form is interpreted below. This means
+  // a malformed expression in an unselected branch cannot throw or burn CPU.
   final named = <String, String>{};
   for (final part in parts.skip(1)) {
     final colon = part.indexOf(':');
     if (colon < 0) continue;
     final k = part.substring(0, colon).trim();
-    final raw = part.substring(colon + 1).trim();
-    named[k] = interpret(_unquote(raw), args, lang);
+    named[k] = part.substring(colon + 1).trim();
   }
 
+  final String selected;
   switch (name) {
     case '_plural':
-      return i69n.plural(countArg, lang,
+      selected = i69n.plural(countArg, lang,
           zero: named['zero'], one: named['one'], two: named['two'], few: named['few'], many: named['many'], other: named['other']);
+      break;
     case '_ordinal':
-      return i69n.ordinal(countArg, lang,
+      selected = i69n.ordinal(countArg, lang,
           zero: named['zero'], one: named['one'], two: named['two'], few: named['few'], many: named['many'], other: named['other']);
+      break;
     default: // _cardinal
-      return i69n.cardinal(countArg, lang,
+      selected = i69n.cardinal(countArg, lang,
           zero: named['zero'], one: named['one'], two: named['two'], few: named['few'], many: named['many'], other: named['other']);
   }
+  return _interpret(_unquote(selected), args, lang, depth + 1);
 }
 
 /// Splits a call's argument list on top-level commas, ignoring commas inside

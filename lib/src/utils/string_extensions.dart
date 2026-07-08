@@ -7,6 +7,13 @@ extension StringExtensions on String {
 /// Escapes a Dart string literal: converts tab/newline/carriage-return to their
 /// backslash form so the value is a valid single-line `"..."` literal. Surrogate
 /// pairs (emoji) are preserved. All other characters pass through unchanged.
+///
+/// NOTE: `"` and `\` are intentionally NOT escaped here. Non-remote message
+/// values follow a manual-escaping convention — authors write `\"` in the
+/// source YAML/JSON (see `test/mock/testMessages` `quotes`) — and `$` is left
+/// raw so getters can Dart-interpolate `$param`. Auto-escaping would
+/// double-escape those inputs. The remote path uses [escapeTemplate] instead,
+/// which fully escapes because remote templates are never Dart-interpolated.
 String escapeDartString(String string) {
   if (string.isEmpty) return string;
 
