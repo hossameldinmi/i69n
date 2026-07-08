@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:i69n/src/shared/file_node.dart';
+import 'package:jsonc/jsonc.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -18,6 +19,16 @@ void main() {
       final fromJson = FileNode.parseMap(jsonPath, json.decode(File(jsonPath).readAsStringSync()) as Map).build();
 
       expect(fromJson, fromYaml);
+    });
+
+    test('yaml and jsonc produce identical Dart for exampleMessages$locale', () {
+      final yamlPath = 'example/yaml/exampleMessages$locale.i69n.yaml';
+      final jsoncPath = 'example/jsonc/exampleMessages$locale.i69n.jsonc';
+
+      final fromYaml = FileNode.parseMap(yamlPath, loadYaml(File(yamlPath).readAsStringSync()) as Map).build();
+      final fromJsonc = FileNode.parseMap(jsoncPath, jsonc.decode(File(jsoncPath).readAsStringSync()) as Map).build();
+
+      expect(fromJsonc, fromYaml);
     });
   }
 }
