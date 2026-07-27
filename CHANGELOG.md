@@ -4,6 +4,8 @@
   enum value (or any value, matched by `toString()`), with an optional `other:`
   fallback and an empty string when nothing matches
 - `_select` works in remote bundles too, resolved by the runtime interpreter
+- `_select` is not enum-only: a `bool` branches on `true` / `false` cases, and any
+  other value matches by `toString()`
 - a malformed `_select` (unterminated call, case without a name or text,
   duplicate case, no cases) now fails the build instead of emitting broken Dart
 

@@ -21,6 +21,8 @@ void main() async {
   print(m.apples.count(5));
   print(m.person.sees(Gender.female));
   print(m.person.owns(Gender.male, 3));
+  print(m.person.status(true));
+  print(m.person.status(false));
 
   print('Asynchronous load of Czech messages:');
   await cs.loadLibrary();
@@ -35,6 +37,8 @@ void main() async {
   print(m.apples.count(5));
   print(m.person.sees(Gender.female));
   print(m.person.owns(Gender.male, 3));
+  print(m.person.status(true));
+  print(m.person.status(false));
 
   print('Access messages at runtime, with plain old string keys');
   print('Static:  ${m.generic.ok}');

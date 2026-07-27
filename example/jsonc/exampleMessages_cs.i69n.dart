@@ -131,6 +131,10 @@ class PersonExampleMessages_cs extends PersonExampleMessages {
             'female': 'Její',
             'other': 'Jejich'
           })} ${_plural(cnt, one: 'jablko', few: 'jablka', many: 'jablek')}.";
+  String status(bool online) => "${_select(online, {
+            'true': 'Právě online',
+            'false': 'Naposledy před chvílí'
+          })}";
   Object operator [](String key) {
     var index = key.indexOf('.');
     if (index > 0) {
@@ -142,6 +146,8 @@ class PersonExampleMessages_cs extends PersonExampleMessages {
         return sees;
       case 'owns':
         return owns;
+      case 'status':
+        return status;
       default:
         return super[key];
     }

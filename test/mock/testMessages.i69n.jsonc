@@ -32,6 +32,8 @@
   "person": {
     "sees(Gender gender)": "I see ${_select(gender, male: 'Him', female: 'Her', other: 'Them')}",
     "owns(Gender gender, int cnt)": "${_select(gender, male: 'his', female: 'her', other: 'their')} ${_plural(cnt, one: '$cnt apple', many: '$cnt apples')}",
+    // _select is not enum-only: a bool matches by toString().
+    "status(bool online)": "${_select(online, true: 'Online', false: 'Offline')}",
   },
   "friends": {
     "michael": {

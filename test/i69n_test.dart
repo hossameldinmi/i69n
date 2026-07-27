@@ -102,6 +102,8 @@ message"""), equals(r"Multiline\nmessage")); // handles multiline strings
       expect(m.person.sees(Gender.unknown), equals('I see Them'));
       expect(m.person.owns(Gender.male, 2), equals('his 2 apples'));
       expect(m.person.owns(Gender.other, 1), equals('their 1 apple'));
+      expect(m.person.status(true), equals('Online'));
+      expect(m.person.status(false), equals('Offline'));
     });
   });
 }

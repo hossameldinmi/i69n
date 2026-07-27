@@ -127,6 +127,10 @@ class PersonExampleMessages implements i69n.I69nMessageBundle {
             'female': 'Her',
             'other': 'Their'
           })} ${_plural(cnt, one: 'apple', many: 'apples')}.";
+  String status(bool online) => "${_select(online, {
+            'true': 'Online now',
+            'false': 'Last seen a while ago'
+          })}";
   Object operator [](String key) {
     var index = key.indexOf('.');
     if (index > 0) {
@@ -138,6 +142,8 @@ class PersonExampleMessages implements i69n.I69nMessageBundle {
         return sees;
       case 'owns':
         return owns;
+      case 'status':
+        return status;
       default:
         return key;
     }

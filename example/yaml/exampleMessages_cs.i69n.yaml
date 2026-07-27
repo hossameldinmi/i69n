@@ -15,3 +15,4 @@ apples:
 person:
   sees(Gender gender): "Vidím ${_select(gender, male: 'ho', female: 'ji', other: 'je')}."
   owns(Gender gender, int cnt): "${_select(gender, male: 'Jeho', female: 'Její', other: 'Jejich')} ${_plural(cnt, one: 'jablko', few: 'jablka', many: 'jablek')}."
+  status(bool online): "${_select(online, true: 'Právě online', false: 'Naposledy před chvílí')}"

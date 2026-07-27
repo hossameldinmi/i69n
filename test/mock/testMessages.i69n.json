@@ -26,7 +26,8 @@
   },
   "person": {
     "sees(Gender gender)": "I see ${_select(gender, male: 'Him', female: 'Her', other: 'Them')}",
-    "owns(Gender gender, int cnt)": "${_select(gender, male: 'his', female: 'her', other: 'their')} ${_plural(cnt, one: '$cnt apple', many: '$cnt apples')}"
+    "owns(Gender gender, int cnt)": "${_select(gender, male: 'his', female: 'her', other: 'their')} ${_plural(cnt, one: '$cnt apple', many: '$cnt apples')}",
+    "status(bool online)": "${_select(online, true: 'Online', false: 'Offline')}"
   },
   "friends": {
     "michael": {

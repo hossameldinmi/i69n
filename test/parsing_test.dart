@@ -98,6 +98,10 @@ void main() {
                   GrammaticalNumberType.plural,
                 ),
               ),
+              Node(
+                ParametrizedNodeKey('status', personKey, [Parameter('online', 'bool')], fileMetadata),
+                StringNodeValue("\${_select(online, true: 'Online', false: 'Offline')}"),
+              ),
             ]),
           ),
           Node(

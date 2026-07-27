@@ -233,7 +233,14 @@ The first argument is the parameter to branch on, every other argument is one
 Details worth knowing:
 
 * An enum matches by its `.name`. Any other value (a `String`, `bool`, `int`)
-  matches by `toString()`, so you can branch on those too.
+  matches by `toString()`, so you can branch on those too. For a `bool` the
+  cases are simply `true` and `false`:
+
+      person:
+        status(bool online): "${_select(online, true: 'Online now', false: 'Last seen a while ago')}"
+
+      print(m.person.status(true));    // Online now
+      print(m.person.status(false));   // Last seen a while ago
 * `other:` is the fallback for values you did not list. Without it, an unlisted
   value renders an empty string - a partially translated file never crashes.
 * Case texts can interpolate the message's own parameters and reuse other
