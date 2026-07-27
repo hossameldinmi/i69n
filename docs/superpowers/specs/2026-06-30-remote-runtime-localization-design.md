@@ -152,11 +152,17 @@ child classes through the existing `inheritedFlags` mechanism).
 
 With per-instance loading the caller fetches the locale-appropriate payload and
 `load`s it into the bundle they hold, so locale selection is the caller's
-concern (which file/bundle they construct + which payload they fetch). Remote
-**locale-variant files** (`x_cs.i69n.yaml` with the `remote` flag) are out of
-scope here: a locale subclass `extends` the default class across files and
-cannot reach its private `_data`/`_messages`, which the per-instance model
-relies on. The supported path is a single `remote` default file per bundle.
+concern (which file/bundle they construct + which payload they fetch).
+
+Remote **locale-variant files** (`x_cs.i69n.yaml` with the `remote` flag) are
+supported. A locale subclass `extends` the default class across library
+boundaries, so the store cannot be library-private: the generated members are
+`i69nRemoteData` / `i69nRemoteMessages` (public, internal API) and are declared
+only on the default-locale root. The locale class inherits them, so a single
+`load` feeds keys declared in the locale file and keys inherited from the
+default file alike, while each file's own keys pluralize under its own locale.
+Declaring `remote` on a nested message object is rejected at build time — only
+the file root emits `_baked` and the store.
 
 ## Error / fallback semantics
 

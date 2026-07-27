@@ -11,7 +11,7 @@
             "name": "Debug Example",
             "request": "launch",
             "type": "dart",
-            "program": "example/main.dart"
+            "program": "example/yaml/yaml_example.dart"
         }
     ]
 }

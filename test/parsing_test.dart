@@ -108,7 +108,6 @@ void main() {
         ],
         [],
       );
-      ;
       expect(actual.imports, expected.imports);
       expect(actual.metadata, expected.metadata);
       expect(actual.value.value[0], expected.value.value[0]);

@@ -4,7 +4,14 @@
 
 **Goal:** Let `_i69n: remote`-flagged message files resolve their values at runtime through an interpreter backed by a loadable per-locale store, so translations can be updated from a remote API without rebuilding — while keeping the typed generated API.
 
-**Architecture:** A new pure runtime interpreter evaluates i69n message templates (`$ident` / `${ident}` / `_plural`/`_ordinal`/`_cardinal`). A global per-locale store in `lib/i69n.dart` holds remote templates; a `tr()` resolver picks `store[localeName] ?? store[languageCode] ?? baked ?? key` then interprets. Codegen, gated on the inherited `remote` flag, emits `tr()`-backed accessors plus a compiled-in `_baked` template map instead of literals. Non-`remote` files are untouched.
+**Architecture:** A new pure runtime interpreter evaluates i69n message templates (`$ident` / `${ident}` / `_plural`/`_ordinal`/`_cardinal`). Codegen, gated on the file-level `remote` flag, emits `tr()`-backed accessors plus a compiled-in `_baked` template map instead of literals. Non-`remote` files are untouched.
+
+> **As shipped (supersedes the per-locale store described below):** there is no
+> global store. Each root bundle owns its data and exposes `load(Map data)`;
+> `tr()` resolves `loaded ?? baked ?? key` and interprets, falling back down that
+> chain when a template is malformed. Nested bundles read the root's store
+> through the parent chain, and locale-variant bundles (`x_cs.i69n.yaml` with the
+> flag) inherit it, so one `load` feeds inherited and locale-declared keys alike.
 
 **Tech Stack:** Dart (SDK ^3.6.0), `package:build` codegen, `package:dart_style` formatter, `package:test`. No new runtime dependencies.
 

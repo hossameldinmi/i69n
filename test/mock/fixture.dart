@@ -20,15 +20,12 @@ class Fixture {
 
   static Future<String> getFileFormattedContent(String filePath) async {
     final content = await File(filePath).readAsString();
-    try {
-      var formatter = DartFormatter(
-        languageVersion: DartFormatter.latestShortStyleLanguageVersion,
-      );
-      return formatter.format(content);
-    } catch (e) {
-      print(
-          'Cannot format $filePath. You might need to escape some special characters with a backslash. Please investigate generated class.');
-      return content;
-    }
+    var formatter = DartFormatter(
+      languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+    );
+    // Deliberately unguarded: a golden file that does not parse is a codegen
+    // bug, and swallowing the error would let two broken outputs compare equal
+    // as raw strings. Fail the test with the formatter's own message.
+    return formatter.format(content);
   }
 }

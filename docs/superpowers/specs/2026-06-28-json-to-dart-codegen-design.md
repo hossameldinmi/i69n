@@ -5,6 +5,12 @@ Branch: `feature/json-support`
 
 ## Problem
 
+> **Historical snapshot.** This document records the problem as it stood before
+> the pipeline shipped. The code now lives in `lib/src/shared/` (not
+> `lib/src/v2/shared/`), and `Node.build()` / `FileNode.build()` are complete —
+> see `test/parsing_test.dart` and `test/build_test.dart` for the current
+> contract.
+
 The v2 pipeline parses both YAML and JSON locale files into a `FileNode` tree
 (`lib/src/v2/shared/`). Parsing works — `test/parsing_test.dart` verifies the
 tree for both formats and passes. The remaining gap is **code generation**:
