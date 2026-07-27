@@ -3,6 +3,7 @@ import 'package:i69n/i69n.dart';
 import 'package:i69n/src/utils/string_extensions.dart';
 import 'package:test/test.dart';
 
+import 'mock/gender.dart';
 import 'testMessages.i69n.dart';
 
 void main() {
@@ -31,6 +32,36 @@ void main() {
       expect(plural(21, 'uk', one: 'ONE!', few: 'FEW!', other: 'OTHER!'), equals('ONE!'));
       expect(plural(22, 'uk', one: 'ONE!', few: 'FEW!', other: 'OTHER!'), equals('FEW!'));
       expect(plural(25, 'uk', one: 'ONE!', few: 'FEW!', other: 'OTHER!'), equals('OTHER!'));
+    });
+  });
+
+  group('Select', () {
+    test('enum resolves by its name', () {
+      expect(select(Gender.male, {'male': 'Him', 'female': 'Her'}), equals('Him'));
+      expect(select(Gender.female, {'male': 'Him', 'female': 'Her'}), equals('Her'));
+    });
+
+    test('unmatched value falls back to the other case', () {
+      expect(select(Gender.unknown, {'male': 'Him', 'other': 'Them'}), equals('Them'));
+    });
+
+    test('unmatched value without an other case is empty', () {
+      expect(select(Gender.unknown, {'male': 'Him', 'female': 'Her'}), equals(''));
+    });
+
+    test('a value named other prefers its own case', () {
+      expect(select(Gender.other, {'other': 'Them', 'male': 'Him'}), equals('Them'));
+    });
+
+    test('non-enum values resolve by toString', () {
+      expect(select('male', {'male': 'Him', 'other': 'Them'}), equals('Him'));
+      expect(select(true, {'true': 'Yes', 'false': 'No'}), equals('Yes'));
+      expect(select(2, {'2': 'Two', 'other': 'Many'}), equals('Two'));
+    });
+
+    test('null falls back to the other case', () {
+      expect(select(null, {'male': 'Him', 'other': 'Them'}), equals('Them'));
+      expect(select(null, {'male': 'Him'}), equals(''));
     });
   });
 
@@ -66,6 +97,11 @@ message"""), equals(r"Multiline\nmessage")); // handles multiline strings
       expect(m.apples.problematic(3), equals("found 3 tasks"));
       expect(m.apples.quotes, equals('Hello "world"!'));
       expect(m.apples.quotes2, equals('Hello "world"!'));
+      expect(m.person.sees(Gender.male), equals('I see Him'));
+      expect(m.person.sees(Gender.female), equals('I see Her'));
+      expect(m.person.sees(Gender.unknown), equals('I see Them'));
+      expect(m.person.owns(Gender.male, 2), equals('his 2 apples'));
+      expect(m.person.owns(Gender.other, 1), equals('their 1 apple'));
     });
   });
 }

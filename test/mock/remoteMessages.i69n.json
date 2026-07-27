@@ -1,9 +1,11 @@
 {
   "_i69n": "remote",
   "_i69n_language": "en",
+  "_i69n_import": "gender.dart",
   "title": "Welcome",
   "greeting(String name)": "Hi $name",
   "apples(int count)": "${_plural(count, one: '$count apple', other: '$count apples')}",
+  "sees(Gender gender)": "I see ${_select(gender, male: 'Him', female: 'Her', other: 'Them')}",
   "home": {
     "subtitle": "Home"
   }

@@ -210,6 +210,40 @@ See also:
 * http://cldr.unicode.org/index/cldr-spec/plural-rules
 * https://www.unicode.org/cldr/charts/latest/supplemental/language_plural_rules.html
 
+## Branching on an enum
+
+Numbers get `_plural`. For everything else you branch on - grammatical gender,
+account type, delivery state - there is `_select`:
+
+    _i69n_import: package:my_app/gender.dart
+    
+    person:
+      sees(Gender gender): "I see ${_select(gender, male: 'him', female: 'her', other: 'them')}."
+      owns(Gender gender, int cnt): "${_select(gender, male: 'His', female: 'Her', other: 'Their')} ${_plural(cnt, one: 'apple', many: 'apples')}."
+
+    ExampleMessages m = ExampleMessages();
+    print(m.person.sees(Gender.female));    // I see her.
+    print(m.person.owns(Gender.male, 3));   // His apples.
+
+The first argument is the parameter to branch on, every other argument is one
+`<enum value name>: 'text'` case:
+
+    String _select(Object value, {String case1, String case2, ...})
+
+Details worth knowing:
+
+* An enum matches by its `.name`. Any other value (a `String`, `bool`, `int`)
+  matches by `toString()`, so you can branch on those too.
+* `other:` is the fallback for values you did not list. Without it, an unlisted
+  value renders an empty string - a partially translated file never crashes.
+* Case texts can interpolate the message's own parameters and reuse other
+  messages, exactly like `_plural` cases.
+* Import the enum with the `_i69n_import` flag (see "Custom imports and custom
+  types" below), and repeat both the import and the message in each translation
+  file that needs to override the text.
+* i69n never reads your Dart source, so it cannot check that you covered every
+  enum value. A missing case falls back to `other:`, then to an empty string.
+
 ## How to use generated classes
 
 How to decide what translation to use (ExampleMessages_cs?, ExampleMessages_hu?) **is up to you**.
@@ -493,11 +527,18 @@ generated `i69nRemoteData` / `i69nRemoteMessages` members are internal API that
 must be public so locale libraries can inherit them — don't use them directly.)
 
 Remote payloads use plain text with `$name` / `${name}` placeholders and the
-`_plural` / `_ordinal` / `_cardinal` forms — the same syntax as the build-time
-file. They must not reference other messages. A malformed template — or a plural
-that has no usable form for the given count — never crashes and never renders
-the `???` sentinel: the accessor falls back to the compiled-in default, then to
-the key itself.
+`_plural` / `_ordinal` / `_cardinal` / `_select` forms — the same syntax as the
+build-time file. They must not reference other messages. A malformed template —
+or a plural that has no usable form for the given count — never crashes and never
+renders the `???` sentinel: the accessor falls back to the compiled-in default,
+then to the key itself.
+
+A `_select` in a remote payload branches on the argument the caller passes, so a
+downloaded translation can change which cases exist:
+
+```json
+{"sees": "Vidím ${_select(gender, male: 'ho', female: 'ji', other: 'je')}."}
+```
 
 # Input formats
 

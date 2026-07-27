@@ -1,6 +1,7 @@
 {
-  // Import dart:io so the generated bundle can use it.
-  "_i69n_import": "dart:io",
+  // Import dart:io so the generated bundle can use it, plus the Gender enum
+  // that the _select messages branch on.
+  "_i69n_import": "dart:io,gender.dart",
   "_i69n_language": "sk",
   "generic": {
     "_i69n": "flag",
@@ -26,6 +27,11 @@
     "anotherProblem": "here\nthere",
     "quotes": "Hello \"world\"!",
     "quotes2": "Hello \"world\"!"
+  },
+  /* Enum branches: _select alone, and _select combined with _plural. */
+  "person": {
+    "sees(Gender gender)": "I see ${_select(gender, male: 'Him', female: 'Her', other: 'Them')}",
+    "owns(Gender gender, int cnt)": "${_select(gender, male: 'his', female: 'her', other: 'their')} ${_plural(cnt, one: '$cnt apple', many: '$cnt apples')}",
   },
   "friends": {
     "michael": {

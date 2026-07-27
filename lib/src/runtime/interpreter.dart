@@ -115,7 +115,7 @@ String _evalExpr(String expr, Map<String, Object?> args, String lang, int depth)
   if (paren < 0) return _lookup(expr, args);
 
   final name = expr.substring(0, paren);
-  if (name != '_plural' && name != '_ordinal' && name != '_cardinal') {
+  if (name != '_plural' && name != '_ordinal' && name != '_cardinal' && name != '_select') {
     throw FormatException('Unknown function "$name" in template expression', expr);
   }
   if (!expr.endsWith(')')) {
@@ -123,6 +123,18 @@ String _evalExpr(String expr, Map<String, Object?> args, String lang, int depth)
   }
   final inner = expr.substring(paren + 1, expr.length - 1);
   final parts = _splitArgs(inner);
+
+  if (name == '_select') {
+    final value = args[parts.first.trim()];
+    final key = value is Enum ? value.name : (value?.toString() ?? '');
+    final cases = _rawNamedArgs(parts);
+    // Lazy, like the grammatical calls: interpret only the chosen branch. A
+    // miss renders the empty string (the documented _select fallback), never
+    // throws, and a malformed unselected branch never runs.
+    final chosen = cases[key] ?? cases['other'];
+    if (chosen == null) return '';
+    return _interpret(_unquote(chosen), args, lang, depth + 1);
+  }
 
   final countKey = parts.first.trim();
   final countArg = args[countKey];
@@ -133,13 +145,7 @@ String _evalExpr(String expr, Map<String, Object?> args, String lang, int depth)
   // Keep every branch RAW (uninterpreted). The CLDR resolver picks exactly one
   // form for this count/locale; only that form is interpreted below. This means
   // a malformed expression in an unselected branch cannot throw or burn CPU.
-  final named = <String, String>{};
-  for (final part in parts.skip(1)) {
-    final colon = part.indexOf(':');
-    if (colon < 0) continue;
-    final k = part.substring(0, colon).trim();
-    named[k] = part.substring(colon + 1).trim();
-  }
+  final named = _rawNamedArgs(parts);
 
   // A resolution miss (no usable branch for this count/locale) throws instead
   // of rendering the '???' sentinel: templates come from an untrusted remote
@@ -156,6 +162,19 @@ String _evalExpr(String expr, Map<String, Object?> args, String lang, int depth)
     throw FormatException('No usable $name form for count $countArg', expr);
   }
   return _interpret(_unquote(selected), args, lang, depth + 1);
+}
+
+/// Parses the `name: 'text'` arguments of a call into a RAW (uninterpreted)
+/// map. Callers interpret only the selected branch, so a malformed or hostile
+/// expression in an unselected branch never runs.
+Map<String, String> _rawNamedArgs(List<String> parts) {
+  final named = <String, String>{};
+  for (final part in parts.skip(1)) {
+    final colon = part.indexOf(':');
+    if (colon < 0) continue;
+    named[part.substring(0, colon).trim()] = part.substring(colon + 1).trim();
+  }
+  return named;
 }
 
 /// Splits a call's argument list on top-level commas, ignoring commas inside

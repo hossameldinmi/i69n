@@ -1,3 +1,4 @@
+_i69n_import: ../gender.dart
 generic:
   _i69n: flag
   done: Hotovo
@@ -11,3 +12,6 @@ invoice:
 apples:
   _apples(int cnt): "${_plural(cnt, zero: 'fakt málo jablek', one:'jedno jablko', few: '$cnt jablka', many:'$cnt jablek')}"
   count(int cnt): "Snědl jsi ${_apples(cnt)}."
+person:
+  sees(Gender gender): "Vidím ${_select(gender, male: 'ho', female: 'ji', other: 'je')}."
+  owns(Gender gender, int cnt): "${_select(gender, male: 'Jeho', female: 'Její', other: 'Jejich')} ${_plural(cnt, one: 'jablko', few: 'jablka', many: 'jablek')}."

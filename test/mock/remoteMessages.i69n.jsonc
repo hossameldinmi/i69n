@@ -2,9 +2,12 @@
   // Remote-flagged bundle: values are resolved at runtime via load().
   "_i69n": "remote",
   "_i69n_language": "en",
+  "_i69n_import": "gender.dart",
   "title": "Welcome",
   "greeting(String name)": "Hi $name",
   "apples(int count)": "${_plural(count, one: '$count apple', other: '$count apples')}",
+  // Enum branch: resolved through the interpreter, baked form keeps named cases.
+  "sees(Gender gender)": "I see ${_select(gender, male: 'Him', female: 'Her', other: 'Them')}",
   /* Nested sub-bundle. */
   "home": {
     "subtitle": "Home",

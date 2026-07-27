@@ -13,13 +13,14 @@ void main() {
       final genericKey = NodeKey('generic', fileKey, fileMetadata);
       final invoiceKey = NodeKey('invoice', fileKey, fileMetadata);
       final applesKey = NodeKey('apples', fileKey, fileMetadata);
+      final personKey = NodeKey('person', fileKey, fileMetadata);
       final friendsKey = NodeKey('friends', fileKey, fileMetadata);
       final michaelKey = NodeKey('michael', friendsKey, fileMetadata);
       final evaKey = NodeKey('eva', friendsKey, fileMetadata);
       final expected = FileNode(
         fileKey,
         NodeListNodeValue([
-          ConfigNode(NodeKey('_i69n_import', fileKey, fileMetadata), StringListNodeValue(['dart:io'])),
+          ConfigNode(NodeKey('_i69n_import', fileKey, fileMetadata), StringListNodeValue(['dart:io', 'gender.dart'])),
           ConfigNode(NodeKey('_i69n_language', fileKey, fileMetadata), StringListNodeValue(['sk'])),
           Node(
             genericKey,
@@ -83,6 +84,23 @@ void main() {
             ),
           ),
           Node(
+            personKey,
+            NodeListNodeValue([
+              Node(
+                ParametrizedNodeKey('sees', personKey, [Parameter('gender', 'Gender')], fileMetadata),
+                StringNodeValue("I see \${_select(gender, male: 'Him', female: 'Her', other: 'Them')}"),
+              ),
+              Node(
+                ParametrizedNodeKey(
+                    'owns', personKey, [Parameter('gender', 'Gender'), Parameter('cnt', 'int')], fileMetadata),
+                GrammaticalNumberNodeValue(
+                  "\${_select(gender, male: 'his', female: 'her', other: 'their')} \${_plural(cnt, one: '\$cnt apple', many: '\$cnt apples')}",
+                  GrammaticalNumberType.plural,
+                ),
+              ),
+            ]),
+          ),
+          Node(
             friendsKey,
             NodeListNodeValue([
               Node(
@@ -105,6 +123,7 @@ void main() {
         fileMetadata,
         [
           Import('dart:io'),
+          Import('gender.dart'),
         ],
         [],
       );
@@ -123,6 +142,7 @@ void main() {
         expect(actual.value.value[4], expected.value.value[4]);
       }
       expect(actual.value.value[5], expected.value.value[5]);
+      expect(actual.value.value[6], expected.value.value[6]);
 
       final expectedScript = await Fixture.getFileFormattedContent('test/mock/testMessages.i69n.g.dart');
       final actualScript = actual.build();

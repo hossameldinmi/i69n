@@ -84,6 +84,11 @@ String _cardinal(int count, {String? zero, String? one, String? two, String? few
     i69n.cardinal(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
 ''');
       }
+      if (hasSelectNode) {
+        output.write('''
+String _select(Object? value, Map<String, String> cases) => i69n.select(value, cases);
+''');
+      }
     }
     output.writeln('');
     if (remote) {
