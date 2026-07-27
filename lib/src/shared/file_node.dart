@@ -13,7 +13,8 @@ class FileNode extends Node {
   final List<String> lintIgnore;
   FileNode(NodeKey key, NodeListNodeValue value, this.metadata, this.imports, this.lintIgnore) : super(key, value);
 
-  factory FileNode.parseMap(String filePath, Map<dynamic, dynamic> map) {
+  factory FileNode.parseMap(String filePath, Map<dynamic, dynamic> map,
+      {Map<String, dynamic> globalConfig = const {}}) {
     final file = LocaleFile(filePath);
     // The root class is always named after the default-locale object (locale
     // suffix stripped); locale files extend it.
@@ -25,7 +26,7 @@ class FileNode extends Node {
     final lintIgnore = _configList(map, 'lint_ignore');
     final language = map['${_configPrefix}_language']?.toString() ?? '';
 
-    final metadata = FileMetadata.fromData(language, file);
+    final metadata = FileMetadata.fromData(language, file, globalConfig: globalConfig);
     final fileKey = NodeKey(defaultObjectName, null, metadata);
     final nodes = map.entries.map((entry) => Node.create(entry.key, entry.value, fileKey, metadata)).toList();
 

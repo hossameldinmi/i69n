@@ -24,7 +24,7 @@ class YamlBasedBuilder implements Builder {
     var contents = await buildStep.readAsString(inputId);
 
     var yamlMap = loadYaml(contents) as Map;
-    var fileNode = FileNode.parseMap(inputId.path, yamlMap);
+    var fileNode = FileNode.parseMap(inputId.path, yamlMap, globalConfig: options.config);
 
     var copy = inputId.changeExtension('.dart');
     await buildStep.writeAsString(copy, fileNode.build());
@@ -48,7 +48,7 @@ class JsonBasedBuilder implements Builder {
     var contents = await buildStep.readAsString(inputId);
 
     var jsonMap = json.decode(contents) as Map;
-    var fileNode = FileNode.parseMap(inputId.path, jsonMap);
+    var fileNode = FileNode.parseMap(inputId.path, jsonMap, globalConfig: options.config);
 
     var copy = inputId.changeExtension('.dart');
     await buildStep.writeAsString(copy, fileNode.build());

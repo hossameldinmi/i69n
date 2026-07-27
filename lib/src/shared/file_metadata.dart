@@ -6,11 +6,20 @@ class FileMetadata extends Equatable {
   final bool isDefault;
   final String localeName;
   final String languageCode;
+
+  /// Builder-level configuration from `build.yaml` (`options:` on the builder),
+  /// e.g. `{'nomap': true}`. A node-local `map` / `traverse` flag overrides the
+  /// global `nomap` / `notraverse`.
+  final Map<String, dynamic> globalConfig;
   static final _twoCharsLower = RegExp('^[a-z]{2,3}\$');
   static final _twoCharsUpper = RegExp('^[A-Z]{2,3}\$');
-  FileMetadata(this.localeFile, this.isDefault, this.localeName, this.languageCode);
+  FileMetadata(this.localeFile, this.isDefault, this.localeName, this.languageCode,
+      {this.globalConfig = const {}});
 
-  factory FileMetadata.fromData(String language, LocaleFile localeFile) {
+  bool hasGlobalFlag(String flag) => globalConfig[flag] == true;
+
+  factory FileMetadata.fromData(String language, LocaleFile localeFile,
+      {Map<String, dynamic> globalConfig = const {}}) {
     String languageCode = language;
     final nameParts = localeFile.pureFileName.split('_');
     late bool isDefault;
@@ -45,7 +54,7 @@ class FileMetadata extends Equatable {
         localeName = '${languageCode}_$countryCode';
       }
     }
-    return FileMetadata(localeFile, isDefault, localeName, languageCode);
+    return FileMetadata(localeFile, isDefault, localeName, languageCode, globalConfig: globalConfig);
   }
 
   static String _renderFileNameError(String name) {
