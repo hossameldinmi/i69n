@@ -11,7 +11,11 @@ class YamlParser implements BaseParser {
   Future<FileNode> parse() async {
     final file = File(filePath);
     final String yamlString = await file.readAsString();
-    final yamlMap = (loadYaml(yamlString) as YamlMap);
-    return FileNode.parseMap(filePath, yamlMap);
+    final decoded = loadYaml(yamlString);
+    if (decoded is! YamlMap) {
+      throw Exception('$filePath: a message file must be a YAML mapping, '
+          'found ${decoded == null ? 'an empty document' : decoded.runtimeType}.');
+    }
+    return FileNode.parseMap(filePath, decoded);
   }
 }

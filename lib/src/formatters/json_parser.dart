@@ -13,8 +13,12 @@ class JsonParser implements BaseParser {
   Future<FileNode> parse() async {
     final file = File(filePath);
     final jsonString = await file.readAsString();
-    final jsonMap = json.decode(jsonString);
+    final decoded = json.decode(jsonString);
+    if (decoded is! Map) {
+      throw Exception('$filePath: a message file must be a JSON object, '
+          'found ${decoded.runtimeType}.');
+    }
 
-    return FileNode.parseMap(filePath, jsonMap);
+    return FileNode.parseMap(filePath, decoded);
   }
 }
