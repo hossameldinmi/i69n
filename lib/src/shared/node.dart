@@ -313,9 +313,10 @@ class Node extends Equatable {
       // A locale root inherits the store and `load` from the default class, so
       // one loaded payload feeds inherited and locale-declared keys alike.
     }
-    // JSON values escape automatically ("" has one spelling in JSON); YAML
-    // keeps the legacy manual-escaping convention for upstream compatibility.
-    final isJson = key.metadata.localeFile.fileExtension == '.json';
+    // JSON and JSONC values escape automatically ("" has one spelling in JSON);
+    // YAML keeps the legacy manual-escaping convention for upstream compatibility.
+    final ext = key.metadata.localeFile.fileExtension;
+    final isJson = ext == '.json' || ext == '.jsonc';
     final escape = hasFlag('noescape') ? (String s) => s : (isJson ? escapeJsonDartString : escapeDartString);
     for (final child in _childNodes) {
       if (child.isClassNode) {

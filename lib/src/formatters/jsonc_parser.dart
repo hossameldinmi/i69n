@@ -13,8 +13,12 @@ class JsoncParser implements BaseParser {
   Future<FileNode> parse() async {
     final file = File(filePath);
     final jsoncString = await file.readAsString();
-    final jsoncMap = jsonc.decode(jsoncString) as Map;
+    final decoded = jsonc.decode(jsoncString);
+    if (decoded is! Map) {
+      throw Exception('$filePath: a message file must be a JSON object, '
+          'found ${decoded.runtimeType}.');
+    }
 
-    return FileNode.parseMap(filePath, jsoncMap);
+    return FileNode.parseMap(filePath, decoded);
   }
 }

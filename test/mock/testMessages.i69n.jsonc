@@ -24,8 +24,8 @@
     "count(int cnt)": "You have eaten ${_apples(cnt)}.",
     "problematic(int count)": "${_plural(count, zero:'didn\\'t find any tasks', one:'found 1 task', other: 'found $count tasks')}",
     "anotherProblem": "here\nthere",
-    "quotes": "Hello \\\"world\\\"!",
-    "quotes2": "Hello \\\"world\\\"!"
+    "quotes": "Hello \"world\"!",
+    "quotes2": "Hello \"world\"!"
   },
   "friends": {
     "michael": {

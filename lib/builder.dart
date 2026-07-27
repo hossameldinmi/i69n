@@ -76,7 +76,7 @@ class JsoncBasedBuilder implements Builder {
     var contents = await buildStep.readAsString(inputId);
 
     var jsoncMap = jsonc.decode(contents) as Map;
-    var fileNode = FileNode.parseMap(inputId.path, jsoncMap);
+    var fileNode = FileNode.parseMap(inputId.path, jsoncMap, globalConfig: options.config);
 
     var copy = inputId.changeExtension('.dart');
     await buildStep.writeAsString(copy, fileNode.build());

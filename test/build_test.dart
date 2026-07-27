@@ -12,6 +12,9 @@ String build(Map<String, Object> map) => FileNode.parseMap('fooMessages.i69n.yam
 /// Same, but through the `.json` path — JSON values escape automatically.
 String buildJson(Map<String, Object> map) => FileNode.parseMap('fooMessages.i69n.json', map).build();
 
+/// Same, but through the `.jsonc` path — jsonc is JSON, so it escapes like JSON.
+String buildJsonc(Map<String, Object> map) => FileNode.parseMap('fooMessages.i69n.jsonc', map).build();
+
 void main() {
   group('JSON value escaping', () {
     test('a natural JSON double quote is escaped in the generated literal', () {
@@ -64,6 +67,13 @@ void main() {
       // Same raw value through .yaml must NOT be auto-escaped.
       final out = build({'quotes': r'Hello \"world\"!'});
       expect(out, contains(r'String get quotes => "Hello \"world\"!";'));
+    });
+
+    test('the jsonc path escapes like JSON, not YAML', () {
+      // jsonc IS json — a natural double quote must be escaped, and a $ that
+      // starts no interpolation must be escaped, exactly as for .json.
+      expect(buildJsonc({'quotes': 'Hello "world"!'}), contains(r'String get quotes => "Hello \"world\"!";'));
+      expect(buildJsonc({'price': r'Cost: $5'}), contains(r'String get price => "Cost: \$5";'));
     });
   });
 
