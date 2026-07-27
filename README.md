@@ -431,6 +431,85 @@ or
 
 Now open the browser http://localhost:8080/ and watch the dev tools console.
 
+# Remote runtime localization
+
+Add the `remote` flag to a message file to back its accessors with values loaded
+at runtime instead of compile-time literals:
+
+```yaml
+_i69n: remote
+_i69n_language: en
+title: Welcome
+greeting(String name): Hi $name
+apples(int count): "${_plural(count, one: '$count apple', other: '$count apples')}"
+```
+
+The generated bundle still exposes the same typed API, but each accessor resolves
+through the bundle's loaded data: a loaded value wins, then the compiled-in
+default, then the key itself. Fetch and decode the payload yourself (i69n adds no
+HTTP or YAML runtime dependency) and inject it into the bundle with `load`:
+
+```dart
+final res = await http.get(Uri.parse('https://example.com/messages_cs.json'));
+
+final msg = RemoteMessages();      // not const: a remote bundle holds its data
+msg.load(jsonDecode(res.body) as Map);
+
+print(msg.title);          // remote value if loaded, else "Welcome"
+print(msg.apples(3));      // plural resolved via CLDR rules for the locale
+```
+
+`load` lives on the root bundle and feeds every nested bundle (`msg.home...`).
+Each instance owns its data, so share the one loaded `msg` across your app (e.g.
+via an `InheritedWidget` or a provider) — a freshly constructed `RemoteMessages()`
+starts empty and resolves to baked defaults until you call `load`.
+
+Locale files work with `remote` too — repeat the flag in each translation file:
+
+```yaml
+# remoteMessages_cs.i69n.yaml
+_i69n: remote
+apples(int count): "${_plural(count, one: '$count jablko', few: '$count jablka', other: '$count jablek')}"
+```
+
+`RemoteMessages_cs` extends `RemoteMessages` and shares its store: one `load`
+feeds keys declared in the locale file and keys inherited from the default file
+alike, and each file's own keys pluralize under that file's locale. (The
+generated `i69nRemoteData` / `i69nRemoteMessages` members are internal API that
+must be public so locale libraries can inherit them — don't use them directly.)
+
+Remote payloads use plain text with `$name` / `${name}` placeholders and the
+`_plural` / `_ordinal` / `_cardinal` forms — the same syntax as the build-time
+file. They must not reference other messages. A malformed template — or a plural
+that has no usable form for the given count — never crashes and never renders
+the `???` sentinel: the accessor falls back to the compiled-in default, then to
+the key itself.
+
+# Input formats
+
+i69n reads two input formats, distinguished by extension:
+
+* `.i69n.yaml` — YAML (shown throughout this README).
+* `.i69n.json` — strict JSON.
+
+Both generate the same `.i69n.dart` output. Use one input format per basename
+within a directory — `foo.i69n.yaml` and `foo.i69n.json` in the same folder
+would both generate `foo.i69n.dart` and collide.
+
+Escaping differs by format. YAML keeps the manual convention described above
+(you write `\"` yourself where the generated Dart needs it). JSON values are
+**escaped automatically**: `"` and `\` are literal text, so plain JSON just
+works —
+
+```json
+{ "quotes": "Hello \"world\"!" }
+```
+
+— renders `Hello "world"!`. Two Dart-isms survive inside JSON values: `$name`
+interpolates a parameter (write `\\$` for a literal dollar sign), and the
+content of `${_plural(...)}` blocks is Dart expression territory, where the
+usual single-quote escaping applies (`'didn\\'t'`).
+
 # Credits
 
 Created by [https://fnx.io](https://fnx.io).

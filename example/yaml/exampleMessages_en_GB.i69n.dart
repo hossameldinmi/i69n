@@ -2,22 +2,19 @@
 // GENERATED FILE, do not edit!
 // dart format off
 import 'package:i69n/i69n.dart' as i69n;
+import 'exampleMessages.i69n.dart';
 
 String get _languageCode => 'en';
-String get _localeName => 'en';
+String get _localeName => 'en_GB';
 
 String _plural(int count, {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
     i69n.plural(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
-String _ordinal(int count, {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
-    i69n.ordinal(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
-String _cardinal(int count, {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
-    i69n.cardinal(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
 
-class ExampleMessages implements i69n.I69nMessageBundle {
-  const ExampleMessages();
-  GenericExampleMessages get generic => GenericExampleMessages(this);
-  InvoiceExampleMessages get invoice => InvoiceExampleMessages(this);
-  ApplesExampleMessages get apples => ApplesExampleMessages(this);
+class ExampleMessages_en_GB extends ExampleMessages {
+  const ExampleMessages_en_GB();
+  GenericExampleMessages_en_GB get generic => GenericExampleMessages_en_GB(this);
+  InvoiceExampleMessages_en_GB get invoice => InvoiceExampleMessages_en_GB(this);
+  ApplesExampleMessages_en_GB get apples => ApplesExampleMessages_en_GB(this);
   Object operator [](String key) {
     var index = key.indexOf('.');
     if (index > 0) {
@@ -31,17 +28,17 @@ class ExampleMessages implements i69n.I69nMessageBundle {
       case 'apples':
         return apples;
       default:
-        return key;
+        return super[key];
     }
   }
 }
 
-class GenericExampleMessages implements i69n.I69nMessageBundle {
-  final ExampleMessages _parent;
-  const GenericExampleMessages(this._parent);
+class GenericExampleMessages_en_GB extends GenericExampleMessages {
+  final ExampleMessages_en_GB _parent;
+  const GenericExampleMessages_en_GB(this._parent) : super(_parent);
   String get ok => "OK";
   String get done => "DONE";
-  String get letsGo => "Let's go!";
+  String get letsGo => "Let us go!";
   Object operator [](String key) {
     var index = key.indexOf('.');
     if (index > 0) {
@@ -55,18 +52,18 @@ class GenericExampleMessages implements i69n.I69nMessageBundle {
       case 'letsGo':
         return letsGo;
       default:
-        return key;
+        return super[key];
     }
   }
 }
 
-class InvoiceExampleMessages implements i69n.I69nMessageBundle {
-  final ExampleMessages _parent;
-  const InvoiceExampleMessages(this._parent);
+class InvoiceExampleMessages_en_GB extends InvoiceExampleMessages {
+  final ExampleMessages_en_GB _parent;
+  const InvoiceExampleMessages_en_GB(this._parent) : super(_parent);
   String get create => "Create invoice";
   String get delete => "Delete  invoice";
   String get help => "Use this function to generate new invoices and stuff. Awesome!";
-  String count(int cnt) => "You have created $cnt ${_plural(cnt, one: 'invoice', many: 'invoices')}.";
+  String count(int cnt) => "You have created $cnt ${_plural(cnt, one: 'invoice', many: 'invoices')} indeed.";
   Object operator [](String key) {
     var index = key.indexOf('.');
     if (index > 0) {
@@ -76,9 +73,9 @@ class InvoiceExampleMessages implements i69n.I69nMessageBundle {
   }
 }
 
-class ApplesExampleMessages implements i69n.I69nMessageBundle {
-  final ExampleMessages _parent;
-  const ApplesExampleMessages(this._parent);
+class ApplesExampleMessages_en_GB extends ApplesExampleMessages {
+  final ExampleMessages_en_GB _parent;
+  const ApplesExampleMessages_en_GB(this._parent) : super(_parent);
   String _apples(int cnt) => "${_plural(cnt, zero: 'no apples', one: '$cnt apple', many: '$cnt apples')}";
   String count(int cnt) => "You have eaten ${_apples(cnt)}.";
   Object operator [](String key) {
@@ -92,7 +89,7 @@ class ApplesExampleMessages implements i69n.I69nMessageBundle {
       case 'count':
         return count;
       default:
-        return key;
+        return super[key];
     }
   }
 }
