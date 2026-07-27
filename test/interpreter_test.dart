@@ -160,5 +160,13 @@ void main() {
         'ok',
       );
     });
+
+    test('_select evaluates only the chosen branch (lazy)', () {
+      // gender=male selects `male`; the broken `female` branch must never run.
+      expect(
+        interpret(r"${_select(gender, male: 'ok', female: '${oops')}", {'gender': 'male'}, 'en'),
+        'ok',
+      );
+    });
   });
 }
