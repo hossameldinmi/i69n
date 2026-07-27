@@ -1,5 +1,6 @@
 import 'package:test/test.dart';
 import 'mock/remoteMessages.i69n.dart';
+import 'mock/remoteMessages_cs.i69n.dart';
 
 void main() {
   group('remote bundle end-to-end', () {
@@ -29,6 +30,16 @@ void main() {
       expect(m.apples(2), '2 fruits');
     });
 
+    test('a loaded plural with no usable branch falls back to baked', () {
+      final m = RemoteMessages();
+      m.load({
+        'apples': r"${_plural(count, two: 'a pair')}",
+      });
+      // The remote template only covers `two`; for count=3 nothing resolves.
+      // The user must see the baked default, never the ??? sentinel.
+      expect(m.apples(3), '3 apples');
+    });
+
     test('load reaches nested bundles and operator[] traverses', () {
       final m = RemoteMessages();
       m.load({
@@ -37,6 +48,32 @@ void main() {
       expect(m.home.subtitle, 'Domov');
       expect(m['home.subtitle'], 'Domov');
       expect(m['nope'], 'nope'); // unknown key -> key string
+    });
+
+    test('a locale bundle resolves its own baked defaults with its own locale', () {
+      final m = RemoteMessages_cs();
+      expect(m.apples(1), '1 jablko');
+      expect(m.apples(2), '2 jablka'); // few — Czech rules, not English
+      expect(m.home.subtitle, 'Domov');
+      expect(m.title, 'Welcome'); // not in the cs file — inherited baked default
+    });
+
+    test('a payload loaded into a locale bundle reaches inherited keys', () {
+      final m = RemoteMessages_cs();
+      m.load({'title': 'Vítejte'});
+      // `title` is not declared in the cs file, so its getter is inherited from
+      // the default class — the loaded value must still win over baked.
+      expect(m.title, 'Vítejte');
+    });
+
+    test('a payload loaded into a locale bundle reaches its own and nested keys', () {
+      final m = RemoteMessages_cs();
+      m.load({
+        'apples': r'$count kusů',
+        'home': {'subtitle': 'Doma'},
+      });
+      expect(m.apples(5), '5 kusů');
+      expect(m.home.subtitle, 'Doma');
     });
 
     test('separate instances hold independent data', () {

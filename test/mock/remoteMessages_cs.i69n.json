@@ -1,0 +1,7 @@
+{
+  "_i69n": "remote",
+  "apples(int count)": "${_plural(count, one: '$count jablko', few: '$count jablka', other: '$count jablek')}",
+  "home": {
+    "subtitle": "Domov"
+  }
+}
