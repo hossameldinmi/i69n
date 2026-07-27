@@ -225,10 +225,18 @@ account type, delivery state - there is `_select`:
     print(m.person.sees(Gender.female));    // I see her.
     print(m.person.owns(Gender.male, 3));   // His apples.
 
-The first argument is the parameter to branch on, every other argument is one
-`<enum value name>: 'text'` case:
+In the message you write `_select(value, case: 'text', ...)`: the first argument
+is the parameter to branch on, every other argument is one
+`<enum value name>: 'text'` case. Dart has no arbitrary named parameters, so at
+build time i69n rewrites that into a call to the runtime helper, turning the
+cases into a map:
 
-    String _select(Object value, {String case1, String case2, ...})
+    // authored in the message
+    ${_select(gender, male: 'him', female: 'her', other: 'them')}
+    // generated Dart
+    ${i69n.select(gender, {'male': 'him', 'female': 'her', 'other': 'them'})}
+
+    String select(Object? value, Map<String, String> cases)
 
 Details worth knowing:
 

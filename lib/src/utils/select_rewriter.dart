@@ -84,9 +84,15 @@ String _rewriteCall(String args, String template) {
   if (cases.isEmpty) {
     throw Exception('Invalid _select in message "$template": at least one case is required.');
   }
-  final entries = cases.entries.map((e) => "'${e.key}': ${e.value}").join(', ');
+  final entries = cases.entries.map((e) => "'${_escapeKey(e.key)}': ${e.value}").join(', ');
   return '$value, {$entries}';
 }
+
+/// Escapes a case name for embedding as a single-quoted Dart string-literal key.
+/// Case names are usually enum value names, but `_select` matches by
+/// `toString()`, so a name may carry a backslash or quote that would otherwise
+/// break the generated map literal.
+String _escapeKey(String key) => key.replaceAll('\\', r'\\').replaceAll("'", r"\'");
 
 /// Returns the index of the `)` matching the `(` at [openIdx], or -1 if none.
 /// Single-quoted regions (and their backslash escapes) are skipped, so parens

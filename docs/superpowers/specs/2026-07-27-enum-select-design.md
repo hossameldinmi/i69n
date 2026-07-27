@@ -1,7 +1,7 @@
 # Enum select (`_select`) — design
 
 Date: 2026-07-27
-Status: implemented (see CHANGELOG 3.7.0)
+Status: implemented (see CHANGELOG 3.8.0)
 Branch: `feature/enum-select` (based on `feature/jsonc-support`)
 
 ## Problem
@@ -162,7 +162,7 @@ type, so the branch has no type check to throw on.
 - `example/yaml|json|jsonc/exampleMessages*`: a `_select` message plus the enum it
   needs, mirrored across all three formats — `test/example_parity_test.dart`
   requires the mirrors to match — and regenerated `.i69n.dart` output.
-- CHANGELOG: new `3.7.0` entry; `pubspec.yaml` version bump to `3.7.0`.
+- CHANGELOG: new `3.8.0` entry; `pubspec.yaml` version bump to `3.8.0`.
 
 ## Out of scope
 

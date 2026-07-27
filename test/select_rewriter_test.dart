@@ -105,5 +105,23 @@ void main() {
         throwsA(isA<Exception>()),
       );
     });
+
+    test('a backslash in a case name is escaped in the emitted key', () {
+      // Case names are usually enum value names, but _select matches by
+      // toString(), so a String arg could carry one. The map key is a Dart
+      // string literal; a raw backslash would emit an invalid escape.
+      expect(
+        rewriteSelectCalls(r"${_select(s, a\b: 'x', other: 'y')}"),
+        r"${_select(s, {'a\\b': 'x', 'other': 'y'})}",
+      );
+    });
+
+    test('a digit case name (int toString) is preserved', () {
+      // _select(count, 2: '...') is valid — case names are not identifiers.
+      expect(
+        rewriteSelectCalls(r"${_select(n, 2: 'two', other: 'many')}"),
+        r"${_select(n, {'2': 'two', 'other': 'many'})}",
+      );
+    });
   });
 }
