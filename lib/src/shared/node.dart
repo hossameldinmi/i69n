@@ -279,20 +279,32 @@ class Node extends Equatable {
       } else {
         b.writeln('const $className(this._parent) : super(_parent);');
       }
-      if (remote) {
-        // Child bundles read the data loaded into the root via the parent chain.
-        b.writeln('Map<String, String> get _messages => _parent._messages;');
+      if (remote && isDefault) {
+        // Child bundles read the data loaded into the root via the parent
+        // chain. The member is PUBLIC on purpose: locale files are separate
+        // libraries, and a library-private `_messages` cannot be inherited
+        // across them — each locale class would shadow its own empty store and
+        // loaded payloads would silently never apply to inherited keys.
+        b.writeln('Map<String, String> get i69nRemoteMessages => _parent.i69nRemoteMessages;');
       }
+      // Locale classes inherit the store accessor from the default class.
     } else {
       // A remote root holds its loaded data, so it cannot be const.
       b.writeln('${remote ? '' : 'const '}$className();');
-      if (remote) {
-        b.writeln('final Map<String, String> _data = {};');
-        b.writeln('void load(Map data) { _data..clear()..addAll(i69n.flattenMessages(data)); }');
-        b.writeln('Map<String, String> get _messages => _data;');
+      if (remote && isDefault) {
+        // Public for the same cross-library reason as above. `i69nRemoteData`
+        // and `i69nRemoteMessages` are internal API — do not use directly.
+        b.writeln('final Map<String, String> i69nRemoteData = {};');
+        b.writeln('void load(Map data) { i69nRemoteData..clear()..addAll(i69n.flattenMessages(data)); }');
+        b.writeln('Map<String, String> get i69nRemoteMessages => i69nRemoteData;');
       }
+      // A locale root inherits the store and `load` from the default class, so
+      // one loaded payload feeds inherited and locale-declared keys alike.
     }
-    final escape = hasFlag('noescape') ? (String s) => s : escapeDartString;
+    // JSON values escape automatically ("" has one spelling in JSON); YAML
+    // keeps the legacy manual-escaping convention for upstream compatibility.
+    final isJson = key.metadata.localeFile.fileExtension == '.json';
+    final escape = hasFlag('noescape') ? (String s) => s : (isJson ? escapeJsonDartString : escapeDartString);
     for (final child in _childNodes) {
       if (child.isClassNode) {
         b.writeln('${child.key.objectName} get ${child.key.key} => ${child.key.objectName}(this);');
@@ -302,9 +314,9 @@ class Node extends Equatable {
         if (childKey is ParametrizedNodeKey) {
           final params = childKey.parameters.map((p) => '${p.type} ${p.name}').join(', ');
           final args = '{${childKey.parameters.map((p) => "'${p.name}': ${p.name}").join(', ')}}';
-          b.writeln("String ${childKey.key}($params) => i69n.tr(_messages, _baked, '$mp', $args, _languageCode);");
+          b.writeln("String ${childKey.key}($params) => i69n.tr(i69nRemoteMessages, _baked, '$mp', $args, _languageCode);");
         } else {
-          b.writeln("String get ${childKey.key} => i69n.tr(_messages, _baked, '$mp', const {}, _languageCode);");
+          b.writeln("String get ${childKey.key} => i69n.tr(i69nRemoteMessages, _baked, '$mp', const {}, _languageCode);");
         }
       } else {
         final literal = escape(child.value.value.toString());
@@ -325,8 +337,12 @@ class Node extends Equatable {
 
   void _renderMapOperator(StringBuffer b, Set<String> inheritedFlags) {
     b.writeln('Object operator [](String key) {');
-    final disableMap = hasFlag('nomap');
-    final disableTraverse = hasFlag('notraverse');
+    // Local flag wins; else the build.yaml global applies unless the local
+    // `map` / `traverse` override cancels it (see README "Global configuration
+    // for map operators").
+    final meta = key.metadata;
+    final disableMap = hasFlag('nomap') || (!hasFlag('map') && meta.hasGlobalFlag('nomap'));
+    final disableTraverse = hasFlag('notraverse') || (!hasFlag('traverse') && meta.hasGlobalFlag('notraverse'));
     if (disableMap && disableTraverse) {
       b.writeln("throw Exception('[] operator is disabled in $path, see _i69n: nomap, notraverse flag.');");
       b.writeln('}');

@@ -6,7 +6,53 @@ import 'package:test/test.dart';
 /// inherited nothrow, and tab/carriage-return escaping.
 String build(Map<String, Object> map) => FileNode.parseMap('fooMessages.i69n.yaml', map).build();
 
+/// Same, but through the `.json` path — JSON values escape automatically.
+String buildJson(Map<String, Object> map) => FileNode.parseMap('fooMessages.i69n.json', map).build();
+
 void main() {
+  group('JSON value escaping', () {
+    test('a natural JSON double quote is escaped in the generated literal', () {
+      final out = buildJson({'quotes': 'Hello "world"!'});
+      expect(out, contains(r'String get quotes => "Hello \"world\"!";'));
+    });
+
+    test('a natural JSON backslash is escaped in the generated literal', () {
+      final out = buildJson({'path': r'C:\Users\me'});
+      expect(out, contains(r'String get path => "C:\\Users\\me";'));
+    });
+
+    test(r'an authored \$ still suppresses interpolation', () {
+      final out = buildJson({'price': r'cost \$5'});
+      expect(out, contains(r'String get price => "cost \$5";'));
+    });
+
+    test(r'a bare $param stays raw for Dart interpolation', () {
+      final out = buildJson({'greet(String name)': r'Hi $name!'});
+      expect(out, contains(r'String greet(String name) => "Hi $name!";'));
+    });
+
+    test(r'content inside ${...} is left untouched', () {
+      final out = buildJson({
+        'problematic(int count)': r"${_plural(count, zero:'didn\'t find any', other: 'found $count')}",
+      });
+      expect(out, contains(r"${_plural(count, zero: 'didn\'t find any', other: 'found $count')}"));
+    });
+
+    test('noescape disables JSON escaping too', () {
+      final out = buildJson({
+        '_i69n': 'noescape',
+        'quotes': r'Hello \"world\"!',
+      });
+      expect(out, contains(r'String get quotes => "Hello \"world\"!";'));
+    });
+
+    test('the YAML path keeps the manual-escaping convention', () {
+      // Same raw value through .yaml must NOT be auto-escaped.
+      final out = build({'quotes': r'Hello \"world\"!'});
+      expect(out, contains(r'String get quotes => "Hello \"world\"!";'));
+    });
+  });
+
   test('emits _cardinal helper only when a cardinal node exists', () {
     final out = build({
       'pages(int n)': "\${_cardinal(n, other: '\$n')}",
@@ -34,6 +80,46 @@ void main() {
     expect(out, contains('see _i69n: nomap, notraverse flag.'));
     expect(out, isNot(contains('switch (')));
     expect(out, isNot(contains("key.indexOf('.')")));
+  });
+
+  group('Global build.yaml options', () {
+    String buildWith(Map<String, Object> map, Map<String, dynamic> config) =>
+        FileNode.parseMap('fooMessages.i69n.yaml', map, globalConfig: config).build();
+
+    test('no global config keeps the map switch and traverse block', () {
+      final out = buildWith({'a': 'A'}, {});
+      expect(out, contains("case 'a':"));
+      expect(out, contains("key.indexOf('.')"));
+    });
+
+    test('global nomap disables the map switch', () {
+      final out = buildWith({'a': 'A'}, {'nomap': true});
+      expect(out, contains('see _i69n: nomap flag.'));
+      expect(out, isNot(contains("case 'a':")));
+    });
+
+    test('global notraverse disables the dotted-key traverse block', () {
+      final out = buildWith({'a': 'A'}, {'notraverse': true});
+      expect(out, contains("case 'a':"));
+      expect(out, isNot(contains("key.indexOf('.')")));
+    });
+
+    test('local map overrides global nomap', () {
+      final out = buildWith({'_i69n': 'map', 'a': 'A'}, {'nomap': true});
+      expect(out, contains("case 'a':"));
+    });
+
+    test('local traverse overrides global notraverse', () {
+      final out = buildWith({'_i69n': 'traverse', 'a': 'A'}, {'notraverse': true});
+      expect(out, contains("key.indexOf('.')"));
+    });
+
+    test('the local override is per message object, not file-wide', () {
+      final out = buildWith({'_i69n': 'map', 'sub': {'a': 'A'}}, {'nomap': true});
+      // Root has the override, the nested class does not.
+      expect(out, contains("case 'sub':"));
+      expect(out, contains('see _i69n: nomap flag.'));
+    });
   });
 
   test('nothrow on a parent is inherited by child classes', () {
