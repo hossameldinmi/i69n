@@ -1,0 +1,13 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: 80%
+
+# The build_runner Builder glue is exercised by real builds, not unit tests.
+ignore:
+  - "lib/builder.dart"
