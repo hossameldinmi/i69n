@@ -8,17 +8,9 @@ import '../gender.dart';
 String get _languageCode => 'cs';
 String get _localeName => 'cs';
 
-String _plural(int count,
-        {String? zero,
-        String? one,
-        String? two,
-        String? few,
-        String? many,
-        String? other}) =>
-    i69n.plural(count, _languageCode,
-        zero: zero, one: one, two: two, few: few, many: many, other: other);
-String _select(Object? value, Map<String, String> cases) =>
-    i69n.select(value, cases);
+String _plural(int count, {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
+    i69n.plural(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
+String _select(Object? value, Map<String, String> cases) => i69n.select(value, cases);
 
 class ExampleMessages_cs extends ExampleMessages {
   const ExampleMessages_cs();
@@ -29,8 +21,7 @@ class ExampleMessages_cs extends ExampleMessages {
   Object operator [](String key) {
     var index = key.indexOf('.');
     if (index > 0) {
-      return (this[key.substring(0, index)]
-          as i69n.I69nMessageBundle)[key.substring(index + 1)];
+      return (this[key.substring(0, index)] as i69n.I69nMessageBundle)[key.substring(index + 1)];
     }
     switch (key) {
       case 'generic':
@@ -54,8 +45,7 @@ class GenericExampleMessages_cs extends GenericExampleMessages {
   Object operator [](String key) {
     var index = key.indexOf('.');
     if (index > 0) {
-      return (this[key.substring(0, index)]
-          as i69n.I69nMessageBundle)[key.substring(index + 1)];
+      return (this[key.substring(0, index)] as i69n.I69nMessageBundle)[key.substring(index + 1)];
     }
     switch (key) {
       case 'done':
@@ -72,13 +62,11 @@ class InvoiceExampleMessages_cs extends InvoiceExampleMessages {
   String get create => "Vytvořit fakturu";
   String get delete => "Smazat fakturu";
   String get help => "Tuhle funkci použij na vytváření faktur. Boží!";
-  String count(int a) =>
-      "Už jsi vytvořil ${_plural(a, one: 'fakturu', few: 'faktury', many: 'faktur')}.";
+  String count(int a) => "Už jsi vytvořil ${_plural(a, one: 'fakturu', few: 'faktury', many: 'faktur')}.";
   Object operator [](String key) {
     var index = key.indexOf('.');
     if (index > 0) {
-      return (this[key.substring(0, index)]
-          as i69n.I69nMessageBundle)[key.substring(index + 1)];
+      return (this[key.substring(0, index)] as i69n.I69nMessageBundle)[key.substring(index + 1)];
     }
     switch (key) {
       case 'create':
@@ -104,8 +92,7 @@ class ApplesExampleMessages_cs extends ApplesExampleMessages {
   Object operator [](String key) {
     var index = key.indexOf('.');
     if (index > 0) {
-      return (this[key.substring(0, index)]
-          as i69n.I69nMessageBundle)[key.substring(index + 1)];
+      return (this[key.substring(0, index)] as i69n.I69nMessageBundle)[key.substring(index + 1)];
     }
     switch (key) {
       case '_apples':
@@ -121,25 +108,17 @@ class ApplesExampleMessages_cs extends ApplesExampleMessages {
 class PersonExampleMessages_cs extends PersonExampleMessages {
   final ExampleMessages_cs _parent;
   const PersonExampleMessages_cs(this._parent) : super(_parent);
-  String sees(Gender gender) => "Vidím ${_select(gender, {
-            'male': 'ho',
-            'female': 'ji',
-            'other': 'je'
-          })}.";
+  String sees(Gender gender) => "Vidím ${_select(gender, {'male': 'ho', 'female': 'ji', 'other': 'je'})}.";
   String owns(Gender gender, int cnt) => "${_select(gender, {
             'male': 'Jeho',
             'female': 'Její',
             'other': 'Jejich'
           })} ${_plural(cnt, one: 'jablko', few: 'jablka', many: 'jablek')}.";
-  String status(bool online) => "${_select(online, {
-            'true': 'Právě online',
-            'false': 'Naposledy před chvílí'
-          })}";
+  String status(bool online) => "${_select(online, {'true': 'Právě online', 'false': 'Naposledy před chvílí'})}";
   Object operator [](String key) {
     var index = key.indexOf('.');
     if (index > 0) {
-      return (this[key.substring(0, index)]
-          as i69n.I69nMessageBundle)[key.substring(index + 1)];
+      return (this[key.substring(0, index)] as i69n.I69nMessageBundle)[key.substring(index + 1)];
     }
     switch (key) {
       case 'sees':
