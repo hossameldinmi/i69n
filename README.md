@@ -100,6 +100,18 @@ All three generate the same `.i69n.dart` output; pick whichever your team prefer
 Use one input format per basename within a directory — `foo.i69n.json` and
 `foo.i69n.jsonc` in the same folder would both generate `foo.i69n.dart` and collide.
 
+Escaping differs by format. YAML keeps the manual convention (you write `\"`
+yourself where the generated Dart needs it — see "Escaping special characters"
+below). JSON and JSONC values are **escaped automatically**: `"` and `\` are
+literal text, so plain JSON just works —
+
+    { "quotes": "Hello \"world\"!" }
+
+— renders `Hello "world"!`. Two Dart-isms survive inside JSON/JSONC values:
+`$name` interpolates a parameter (write `\\$` for a literal dollar sign), and the
+content of `${_plural(...)}` / `${_select(...)}` blocks is Dart expression
+territory, where the usual single-quote escaping applies (`'didn\\'t'`).
+
 Add `build_runner` as a dev_dependency and `i69n` as a dependency to `pubspec.yaml`:
 
     dependencies:
@@ -554,31 +566,6 @@ downloaded translation can change which cases exist:
 ```json
 {"sees": "Vidím ${_select(gender, male: 'ho', female: 'ji', other: 'je')}."}
 ```
-
-# Input formats
-
-i69n reads two input formats, distinguished by extension:
-
-* `.i69n.yaml` — YAML (shown throughout this README).
-* `.i69n.json` — strict JSON.
-
-Both generate the same `.i69n.dart` output. Use one input format per basename
-within a directory — `foo.i69n.yaml` and `foo.i69n.json` in the same folder
-would both generate `foo.i69n.dart` and collide.
-
-Escaping differs by format. YAML keeps the manual convention described above
-(you write `\"` yourself where the generated Dart needs it). JSON values are
-**escaped automatically**: `"` and `\` are literal text, so plain JSON just
-works —
-
-```json
-{ "quotes": "Hello \"world\"!" }
-```
-
-— renders `Hello "world"!`. Two Dart-isms survive inside JSON values: `$name`
-interpolates a parameter (write `\\$` for a literal dollar sign), and the
-content of `${_plural(...)}` blocks is Dart expression territory, where the
-usual single-quote escaping applies (`'didn\\'t'`).
 
 # Credits
 
