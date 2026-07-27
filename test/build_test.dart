@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:i69n/src/shared/file_node.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 /// Focused unit tests for `build()` branches not exercised by the full-file
 /// fixture in `parsing_test.dart`: cardinal helper, notraverse / nomap flags,
@@ -31,6 +34,17 @@ void main() {
       expect(out, contains(r'String greet(String name) => "Hi $name!";'));
     });
 
+    test(r'a $ that starts no interpolation is escaped', () {
+      // "Cost: $5" would otherwise generate a Dart syntax error.
+      expect(buildJson({'price': r'Cost: $5'}), contains(r'String get price => "Cost: \$5";'));
+      expect(buildJson({'pct': r'100% $'}), contains(r'String get pct => "100% \$";'));
+      expect(buildJson({'sym': r'$ $ $'}), contains(r'String get sym => "\$ \$ \$";'));
+    });
+
+    test(r'a $ before an unterminated ${ is escaped', () {
+      expect(buildJson({'oops': r'a ${ b'}), contains(r'String get oops => "a \${ b";'));
+    });
+
     test(r'content inside ${...} is left untouched', () {
       final out = buildJson({
         'problematic(int count)': r"${_plural(count, zero:'didn\'t find any', other: 'found $count')}",
@@ -50,6 +64,33 @@ void main() {
       // Same raw value through .yaml must NOT be auto-escaped.
       final out = build({'quotes': r'Hello \"world\"!'});
       expect(out, contains(r'String get quotes => "Hello \"world\"!";'));
+    });
+  });
+
+  group('Decoded input types', () {
+    test('a YamlList config value is accepted', () {
+      final map = loadYaml('''
+_i69n_import:
+  - dart:io
+  - dart:math
+a: A
+''') as Map;
+      final out = FileNode.parseMap('fooMessages.i69n.yaml', map).build();
+      expect(out, contains("import 'dart:io';"));
+      expect(out, contains("import 'dart:math';"));
+    });
+
+    test('a JSON list config value is accepted', () {
+      final map = json.decode('{"_i69n": ["nomap", "notraverse"], "a": "A"}') as Map;
+      final out = FileNode.parseMap('fooMessages.i69n.json', map).build();
+      expect(out, contains('see _i69n: nomap, notraverse flag.'));
+    });
+
+    test('a non-string scalar message value renders as text', () {
+      final map = loadYaml('count: 5\nenabled: true\n') as Map;
+      final out = FileNode.parseMap('fooMessages.i69n.yaml', map).build();
+      expect(out, contains('String get count => "5";'));
+      expect(out, contains('String get enabled => "true";'));
     });
   });
 
@@ -125,6 +166,23 @@ void main() {
       expect(out, contains("case 'sub':"));
       expect(out, contains('see _i69n: nomap flag.'));
     });
+  });
+
+  test('remote declared on a nested node fails the build', () {
+    // `_baked` is only emitted for file-level remote bundles, so a mid-tree
+    // remote flag would generate tr(..., _baked) against a missing constant.
+    expect(
+      () => build({
+        'sub': {'_i69n': 'remote', 'a': 'A'}
+      }),
+      throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('file-level'))),
+    );
+  });
+
+  test('remote on the file root stays valid', () {
+    final out = build({'_i69n': 'remote', 'a': 'A'});
+    expect(out, contains('const Map<String, String> _baked'));
+    expect(out, contains('void load(Map data)'));
   });
 
   test('nothrow on a parent is inherited by child classes', () {
