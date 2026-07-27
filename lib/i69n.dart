@@ -55,22 +55,35 @@ Map<String, CategoryResolver> _resolverRegistry = {
 };
 
 String _resolvePlural(int count, String languageCode, QuantityType type,
+        {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
+    resolveQuantity(count, languageCode, type,
+        zero: zero, one: one, two: two, few: few, many: many, other: other) ??
+    '???';
+
+///
+/// Resolves the form for [count] under [languageCode]'s CLDR rules, or returns
+/// null when no provided form is usable. `plural` / `cardinal` / `ordinal`
+/// render that miss as the '???' sentinel (historical behaviour of generated
+/// code); the runtime interpreter instead treats null as an error so a bad
+/// remote template falls back to the baked default rather than showing '???'.
+///
+String? resolveQuantity(int count, String languageCode, QuantityType type,
     {String? zero, String? one, String? two, String? few, String? many, String? other}) {
   final c = _resolveCategory(languageCode, count, type);
   many ??= other;
   switch (c) {
     case QuantityCategory.zero:
-      return _firstNotNull([zero, many, other])!;
+      return _firstNotNull([zero, many, other]);
     case QuantityCategory.one:
-      return _firstNotNull([one, many, other])!;
+      return _firstNotNull([one, many, other]);
     case QuantityCategory.two:
-      return _firstNotNull([two, few, many, other])!;
+      return _firstNotNull([two, few, many, other]);
     case QuantityCategory.few:
-      return _firstNotNull([few, many, other])!;
+      return _firstNotNull([few, many, other]);
     case QuantityCategory.many:
-      return _firstNotNull([many, other, few])!;
+      return _firstNotNull([many, other, few]);
     case QuantityCategory.other:
-      return _firstNotNull([other, many, few])!;
+      return _firstNotNull([other, many, few]);
   }
 }
 
@@ -96,7 +109,7 @@ QuantityCategory _resolveCategory(String languageCode, int count, QuantityType t
 }
 
 String? _firstNotNull(List<String?> possibilities) {
-  return possibilities.firstWhere((a) => a != null, orElse: () => '???');
+  return possibilities.firstWhere((a) => a != null, orElse: () => null);
 }
 
 /// Flattens decoded remote localization [data] into dotted message keys

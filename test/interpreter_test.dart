@@ -73,6 +73,23 @@ void main() {
       expect(() => interpret(r'${_frobnicate(x)}', {'x': 1}, 'en'), throwsFormatException);
     });
 
+    test('a plural with no usable branch throws instead of rendering ???', () {
+      // count=5 resolves to `other`, falling back through many/few — none
+      // exist, only `two`. The interpreter must throw so `tr` can fall back to
+      // the baked default instead of showing the ??? sentinel to the user.
+      expect(
+        () => interpret(r"${_plural(count, two: 'a pair')}", {'count': 5}, 'en'),
+        throwsFormatException,
+      );
+    });
+
+    test('a plural whose args have no colons throws instead of rendering ???', () {
+      expect(
+        () => interpret(r"${_plural(count, garbage)}", {'count': 5}, 'en'),
+        throwsFormatException,
+      );
+    });
+
     test('non-int plural arg throws FormatException', () {
       expect(() => interpret(r"${_plural(count, other: 'x')}", {'count': 'nope'}, 'en'), throwsFormatException);
     });

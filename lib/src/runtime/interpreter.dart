@@ -141,19 +141,14 @@ String _evalExpr(String expr, Map<String, Object?> args, String lang, int depth)
     named[k] = part.substring(colon + 1).trim();
   }
 
-  final String selected;
-  switch (name) {
-    case '_plural':
-      selected = i69n.plural(countArg, lang,
-          zero: named['zero'], one: named['one'], two: named['two'], few: named['few'], many: named['many'], other: named['other']);
-      break;
-    case '_ordinal':
-      selected = i69n.ordinal(countArg, lang,
-          zero: named['zero'], one: named['one'], two: named['two'], few: named['few'], many: named['many'], other: named['other']);
-      break;
-    default: // _cardinal
-      selected = i69n.cardinal(countArg, lang,
-          zero: named['zero'], one: named['one'], two: named['two'], few: named['few'], many: named['many'], other: named['other']);
+  // A resolution miss (no usable branch for this count/locale) throws instead
+  // of rendering the '???' sentinel: templates come from an untrusted remote
+  // source, and `tr` turns the throw into a fall-back to the baked default.
+  final type = name == '_ordinal' ? i69n.QuantityType.ordinal : i69n.QuantityType.cardinal;
+  final selected = i69n.resolveQuantity(countArg, lang, type,
+      zero: named['zero'], one: named['one'], two: named['two'], few: named['few'], many: named['many'], other: named['other']);
+  if (selected == null) {
+    throw FormatException('No usable $name form for count $countArg', expr);
   }
   return _interpret(_unquote(selected), args, lang, depth + 1);
 }
