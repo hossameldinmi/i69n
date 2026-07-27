@@ -23,7 +23,8 @@ void main() {
     final path = write('fooMessages.i69n.json', '["a", "b"]');
     await expectLater(
       JsonParser(path).parse(),
-      throwsA(isA<Exception>().having((e) => e.toString(), 'message', allOf(contains('fooMessages'), contains('object')))),
+      throwsA(
+          isA<Exception>().having((e) => e.toString(), 'message', allOf(contains('fooMessages'), contains('object')))),
     );
   });
 
@@ -36,7 +37,8 @@ void main() {
     final path = write('fooMessages.i69n.yaml', '- a\n- b\n');
     await expectLater(
       YamlParser(path).parse(),
-      throwsA(isA<Exception>().having((e) => e.toString(), 'message', allOf(contains('fooMessages'), contains('mapping')))),
+      throwsA(
+          isA<Exception>().having((e) => e.toString(), 'message', allOf(contains('fooMessages'), contains('mapping')))),
     );
   });
 

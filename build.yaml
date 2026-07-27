@@ -15,6 +15,13 @@ builders:
     build_to: source
     auto_apply: root_package
 
+  jsoncBasedBuilder:
+    import: "package:i69n/builder.dart"
+    builder_factories: ["jsoncBasedBuilder"]
+    build_extensions: {".i69n.jsonc": [".i69n.dart"]}
+    build_to: source
+    auto_apply: root_package
+
 # Test fixtures under test/ are parsed directly by the test suite, not built.
 # Excluding them also avoids a yaml/json output collision for shared basenames.
 targets:
@@ -25,6 +32,10 @@ targets:
           exclude:
             - test/**
       i69n|jsonBasedBuilder:
+        generate_for:
+          exclude:
+            - test/**
+      i69n|jsoncBasedBuilder:
         generate_for:
           exclude:
             - test/**

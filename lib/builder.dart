@@ -6,11 +6,14 @@ import 'dart:convert';
 
 import 'package:build/build.dart';
 import 'package:i69n/src/shared/file_node.dart';
+import 'package:jsonc/jsonc.dart';
 import 'package:yaml/yaml.dart';
 
 Builder yamlBasedBuilder(BuilderOptions options) => YamlBasedBuilder(options);
 
 Builder jsonBasedBuilder(BuilderOptions options) => JsonBasedBuilder(options);
+
+Builder jsoncBasedBuilder(BuilderOptions options) => JsoncBasedBuilder(options);
 
 /// Generates Dart message bundles from `.i69n.yaml` files.
 class YamlBasedBuilder implements Builder {
@@ -57,5 +60,30 @@ class JsonBasedBuilder implements Builder {
   @override
   final buildExtensions = const {
     '.i69n.json': ['.i69n.dart']
+  };
+}
+
+/// Generates Dart message bundles from `.i69n.jsonc` files
+/// (JSON with comments and trailing commas).
+class JsoncBasedBuilder implements Builder {
+  const JsoncBasedBuilder(this.options);
+
+  final BuilderOptions options;
+
+  @override
+  Future build(BuildStep buildStep) async {
+    var inputId = buildStep.inputId;
+    var contents = await buildStep.readAsString(inputId);
+
+    var jsoncMap = jsonc.decode(contents) as Map;
+    var fileNode = FileNode.parseMap(inputId.path, jsoncMap, globalConfig: options.config);
+
+    var copy = inputId.changeExtension('.dart');
+    await buildStep.writeAsString(copy, fileNode.build());
+  }
+
+  @override
+  final buildExtensions = const {
+    '.i69n.jsonc': ['.i69n.dart']
   };
 }

@@ -1,0 +1,8 @@
+{
+  // Czech remote locale bundle — shares the root store via inheritance.
+  "_i69n": "remote",
+  "apples(int count)": "${_plural(count, one: '$count jablko', few: '$count jablka', other: '$count jablek')}",
+  "home": {
+    "subtitle": "Domov"
+  }
+}
