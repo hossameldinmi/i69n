@@ -82,7 +82,7 @@ a map literal.
 New `lib/src/utils/select_rewriter.dart`, applied to a message template after
 escaping and before it is wrapped in the generated string literal:
 
-```
+```text
 message text:  "I see ${_select(gender, male: 'Him', female: 'Her')}"
 generated:     String see_one(Gender gender) =>
                    "I see ${_select(gender, {'male': 'Him', 'female': 'Her'})}";

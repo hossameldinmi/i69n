@@ -106,6 +106,21 @@ void main() {
       );
     });
 
+    test('an empty case body throws', () {
+      // `male:` with nothing after the colon would emit `{'male': }`.
+      expect(
+        () => rewriteSelectCalls(r"${_select(gender, male:, other: 'Them')}"),
+        throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('male'))),
+      );
+    });
+
+    test('an explicit empty-string case body is allowed', () {
+      expect(
+        rewriteSelectCalls(r"${_select(gender, male: '', other: 'Them')}"),
+        r"${_select(gender, {'male': '', 'other': 'Them'})}",
+      );
+    });
+
     test('a backslash in a case name is escaped in the emitted key', () {
       // Case names are usually enum value names, but _select matches by
       // toString(), so a String arg could carry one. The map key is a Dart

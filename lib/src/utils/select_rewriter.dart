@@ -14,18 +14,27 @@
 ///
 /// The remote path does not use this: remote bundles bake the authored template
 /// and interpret it at runtime, where named arguments parse fine.
-String rewriteSelectCalls(String template) {
+String rewriteSelectCalls(String template) => _processSelectCalls(template, rewrite: true);
+
+/// Runs the same structural validation as [rewriteSelectCalls] but leaves the
+/// template unchanged. The remote path bakes the authored template verbatim
+/// (the runtime interpreter parses the named-arg form), so it does not rewrite —
+/// but a malformed `_select` must still fail the build, not silently bake and
+/// misrender at runtime. Throws on the same structural problems.
+void validateSelectCalls(String template) => _processSelectCalls(template, rewrite: false);
+
+String _processSelectCalls(String template, {required bool rewrite}) {
   const call = '_select(';
   final out = StringBuffer();
   var i = 0;
   while (i < template.length) {
     final start = template.indexOf(call, i);
     if (start < 0) {
-      out.write(template.substring(i));
+      if (rewrite) out.write(template.substring(i));
       break;
     }
     if (!_isCallStart(template, start)) {
-      out.write(template.substring(i, start + call.length));
+      if (rewrite) out.write(template.substring(i, start + call.length));
       i = start + call.length;
       continue;
     }
@@ -34,10 +43,14 @@ String rewriteSelectCalls(String template) {
     if (close < 0) {
       throw Exception('Invalid _select in message "$template": unterminated call, no matching ")".');
     }
-    out.write(template.substring(i, start));
-    out.write(call);
-    out.write(_rewriteCall(template.substring(open + 1, close), template));
-    out.write(')');
+    // Always runs — validates; the returned map literal is only emitted when rewriting.
+    final rewritten = _rewriteCall(template.substring(open + 1, close), template);
+    if (rewrite) {
+      out.write(template.substring(i, start));
+      out.write(call);
+      out.write(rewritten);
+      out.write(')');
+    }
     i = close + 1;
   }
   return out.toString();
@@ -75,6 +88,9 @@ String _rewriteCall(String args, String template) {
     final text = part.substring(colon + 1).trim();
     if (name.isEmpty) {
       throw Exception('Invalid _select in message "$template": a case is missing its name.');
+    }
+    if (text.isEmpty) {
+      throw Exception('Invalid _select in message "$template": case "$name" is missing its text.');
     }
     if (cases.containsKey(name)) {
       throw Exception('Invalid _select in message "$template": duplicate case "$name".');

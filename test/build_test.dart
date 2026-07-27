@@ -230,6 +230,26 @@ a: A
     expect(out, contains('void load(Map data)'));
   });
 
+  test('a malformed _select in a remote source fails the build', () {
+    // The remote path bakes the authored template instead of rewriting it, but
+    // structural validation must still run — a duplicate case (or any malformed
+    // _select) must fail the build, not bake silently.
+    expect(
+      () => build({
+        '_i69n': 'remote',
+        'sees(Gender g)': "\${_select(g, male: 'Him', male: 'He')}",
+      }),
+      throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('duplicate'))),
+    );
+    expect(
+      () => build({
+        '_i69n': 'remote',
+        'sees(Gender g)': "\${_select(g, male:, other: 'Them')}",
+      }),
+      throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('missing its text'))),
+    );
+  });
+
   test('nothrow on a parent is inherited by child classes', () {
     final out = build({
       '_i69n': 'nothrow',

@@ -273,7 +273,13 @@ class Node extends Equatable {
         if (child.isClassNode) {
           walk(child);
         } else {
-          out[child.key.messagePath] = escapeTemplate(child.value.value.toString());
+          final raw = child.value.value.toString();
+          // The remote path bakes the authored template verbatim rather than
+          // rewriting it, so validate a malformed `_select` here — otherwise it
+          // would build silently and misrender at runtime instead of failing
+          // the build like the non-remote path does.
+          validateSelectCalls(raw);
+          out[child.key.messagePath] = escapeTemplate(raw);
         }
       }
     }
