@@ -19,18 +19,22 @@ abstract class NodeValue<V extends Object> extends Equatable {
   final V value;
   const NodeValue(this.value);
   static NodeValue create(dynamic value, NodeKey? parent, FileMetadata metadata) {
-    if (value is String) {
-      final grammatical = GrammaticalNumberNodeValue.create(value);
-      if (grammatical != null) return grammatical;
-      return StringNodeValue(value);
-    }
-    if (value is List<String>) {
-      return StringListNodeValue.create(value);
-    }
     if (value is Map) {
       return NodeListNodeValue.create(value, parent, metadata);
     }
-    throw Exception('Unsupported value type: ${value.runtimeType}');
+    // `List`, not `List<String>`: json.decode yields List<dynamic> and loadYaml
+    // yields YamlList, so narrowing to List<String> matched no real input.
+    if (value is List) {
+      return StringListNodeValue.create(value);
+    }
+    if (value == null) {
+      throw Exception('Message value is null — a message must have a value.');
+    }
+    // Scalars (String, num, bool, and YAML timestamps) all render as text.
+    final text = value.toString();
+    final grammatical = GrammaticalNumberNodeValue.create(text);
+    if (grammatical != null) return grammatical;
+    return StringNodeValue(text);
   }
 
   @override
@@ -228,6 +232,14 @@ class Node extends Equatable {
 
   /// Renders this class node and, depth-first, every descendant class node.
   String buildClasses(Set<String> inheritedFlags) {
+    // `remote` is a file-level flag: only the file root emits `_baked` and the
+    // data store. Introduced mid-tree it would render tr(..., _baked) against a
+    // constant that does not exist, so reject it with a clear message instead
+    // of emitting Dart that cannot compile.
+    if (key.hasParent && hasFlag('remote') && !inheritedFlags.contains('remote')) {
+      throw Exception('The "remote" flag is file-level: declare _i69n: remote at the top of the file, '
+          'not on the nested message object "$path".');
+    }
     final buffer = StringBuffer();
     buffer.write(_renderClass(inheritedFlags));
     final childInherited = {...inheritedFlags, ...flags};
@@ -394,8 +406,13 @@ class StringListNodeValue extends NodeValue<List<String>> {
       final parts = value.split(',');
       return StringListNodeValue(parts);
     }
-    if (value is List<String>) {
-      return StringListNodeValue(value);
+    // Any decoded list: json.decode yields List<dynamic>, loadYaml yields
+    // YamlList, so a JSON config like `"_i69n": ["remote", "nomap"]` lands here.
+    if (value is List) {
+      return StringListNodeValue(value.map((e) => e.toString()).toList());
+    }
+    if (value is num || value is bool) {
+      return StringListNodeValue([value.toString()]);
     }
     throw Exception('Unsupported value type: ${value.runtimeType}');
   }
