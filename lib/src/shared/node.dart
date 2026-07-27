@@ -314,9 +314,11 @@ class Node extends Equatable {
         if (childKey is ParametrizedNodeKey) {
           final params = childKey.parameters.map((p) => '${p.type} ${p.name}').join(', ');
           final args = '{${childKey.parameters.map((p) => "'${p.name}': ${p.name}").join(', ')}}';
-          b.writeln("String ${childKey.key}($params) => i69n.tr(i69nRemoteMessages, _baked, '$mp', $args, _languageCode);");
+          b.writeln(
+              "String ${childKey.key}($params) => i69n.tr(i69nRemoteMessages, _baked, '$mp', $args, _languageCode);");
         } else {
-          b.writeln("String get ${childKey.key} => i69n.tr(i69nRemoteMessages, _baked, '$mp', const {}, _languageCode);");
+          b.writeln(
+              "String get ${childKey.key} => i69n.tr(i69nRemoteMessages, _baked, '$mp', const {}, _languageCode);");
         }
       } else {
         final literal = escape(child.value.value.toString());
@@ -351,8 +353,7 @@ class Node extends Equatable {
     if (!disableTraverse) {
       b.writeln("var index = key.indexOf('.');");
       b.writeln('if (index > 0) {');
-      b.writeln(
-          "return (this[key.substring(0, index)] as ${Constants.i69nMessageBundle})[key.substring(index + 1)];");
+      b.writeln("return (this[key.substring(0, index)] as ${Constants.i69nMessageBundle})[key.substring(index + 1)];");
       b.writeln('}');
     }
     if (disableMap) {

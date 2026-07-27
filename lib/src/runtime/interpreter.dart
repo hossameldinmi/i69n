@@ -146,7 +146,12 @@ String _evalExpr(String expr, Map<String, Object?> args, String lang, int depth)
   // source, and `tr` turns the throw into a fall-back to the baked default.
   final type = name == '_ordinal' ? i69n.QuantityType.ordinal : i69n.QuantityType.cardinal;
   final selected = i69n.resolveQuantity(countArg, lang, type,
-      zero: named['zero'], one: named['one'], two: named['two'], few: named['few'], many: named['many'], other: named['other']);
+      zero: named['zero'],
+      one: named['one'],
+      two: named['two'],
+      few: named['few'],
+      many: named['many'],
+      other: named['other']);
   if (selected == null) {
     throw FormatException('No usable $name form for count $countArg', expr);
   }

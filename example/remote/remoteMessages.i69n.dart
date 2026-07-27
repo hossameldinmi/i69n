@@ -23,18 +23,14 @@ class RemoteMessages implements i69n.I69nMessageBundle {
   }
 
   Map<String, String> get i69nRemoteMessages => i69nRemoteData;
-  String get title =>
-      i69n.tr(i69nRemoteMessages, _baked, 'title', const {}, _languageCode);
-  String greeting(String name) => i69n.tr(
-      i69nRemoteMessages, _baked, 'greeting', {'name': name}, _languageCode);
-  String apples(int count) => i69n.tr(
-      i69nRemoteMessages, _baked, 'apples', {'count': count}, _languageCode);
+  String get title => i69n.tr(i69nRemoteMessages, _baked, 'title', const {}, _languageCode);
+  String greeting(String name) => i69n.tr(i69nRemoteMessages, _baked, 'greeting', {'name': name}, _languageCode);
+  String apples(int count) => i69n.tr(i69nRemoteMessages, _baked, 'apples', {'count': count}, _languageCode);
   HomeRemoteMessages get home => HomeRemoteMessages(this);
   Object operator [](String key) {
     var index = key.indexOf('.');
     if (index > 0) {
-      return (this[key.substring(0, index)]
-          as i69n.I69nMessageBundle)[key.substring(index + 1)];
+      return (this[key.substring(0, index)] as i69n.I69nMessageBundle)[key.substring(index + 1)];
     }
     switch (key) {
       case 'title':
@@ -55,13 +51,11 @@ class HomeRemoteMessages implements i69n.I69nMessageBundle {
   final RemoteMessages _parent;
   const HomeRemoteMessages(this._parent);
   Map<String, String> get i69nRemoteMessages => _parent.i69nRemoteMessages;
-  String get subtitle => i69n.tr(
-      i69nRemoteMessages, _baked, 'home.subtitle', const {}, _languageCode);
+  String get subtitle => i69n.tr(i69nRemoteMessages, _baked, 'home.subtitle', const {}, _languageCode);
   Object operator [](String key) {
     var index = key.indexOf('.');
     if (index > 0) {
-      return (this[key.substring(0, index)]
-          as i69n.I69nMessageBundle)[key.substring(index + 1)];
+      return (this[key.substring(0, index)] as i69n.I69nMessageBundle)[key.substring(index + 1)];
     }
     switch (key) {
       case 'subtitle':

@@ -1,3 +1,19 @@
+## 3.7.0
+
+- new `.i69n.json` input format: strict JSON message catalogs generating the
+  same Dart as YAML; JSON values are escaped automatically (`"` and `\` are
+  literal text outside `${...}`), unlike YAML's manual-escaping convention
+- new `_i69n: remote` flag: runtime-loaded translations with baked fallbacks —
+  fetch a payload yourself and inject it with `load(Map)`; a loaded value wins,
+  then the compiled-in default, then the key itself
+- a locale remote bundle shares the root bundle's loaded data, so one `load`
+  feeds inherited and locale-declared keys alike
+- a malformed or unusable remote template (bad syntax, plural with no usable
+  form) falls back to the baked default instead of crashing or rendering `???`
+- internal rewrite: node-tree model (`lib/src/shared/`) replaces the string
+  renderer; message keys and parameter declarations are now validated and fail
+  the build with a message pointing at the input file
+
 ## 3.6.0
 
 - added ukrainian plural language rules

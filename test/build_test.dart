@@ -115,7 +115,12 @@ void main() {
     });
 
     test('the local override is per message object, not file-wide', () {
-      final out = buildWith({'_i69n': 'map', 'sub': {'a': 'A'}}, {'nomap': true});
+      final out = buildWith({
+        '_i69n': 'map',
+        'sub': {'a': 'A'}
+      }, {
+        'nomap': true
+      });
       // Root has the override, the nested class does not.
       expect(out, contains("case 'sub':"));
       expect(out, contains('see _i69n: nomap flag.'));

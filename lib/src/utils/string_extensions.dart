@@ -172,4 +172,3 @@ String escapeTemplate(String s) {
   }
   return sb.toString();
 }
-

@@ -13,8 +13,7 @@ class FileMetadata extends Equatable {
   final Map<String, dynamic> globalConfig;
   static final _twoCharsLower = RegExp('^[a-z]{2,3}\$');
   static final _twoCharsUpper = RegExp('^[A-Z]{2,3}\$');
-  FileMetadata(this.localeFile, this.isDefault, this.localeName, this.languageCode,
-      {this.globalConfig = const {}});
+  FileMetadata(this.localeFile, this.isDefault, this.localeName, this.languageCode, {this.globalConfig = const {}});
 
   bool hasGlobalFlag(String flag) => globalConfig[flag] == true;
 

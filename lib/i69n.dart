@@ -56,8 +56,7 @@ Map<String, CategoryResolver> _resolverRegistry = {
 
 String _resolvePlural(int count, String languageCode, QuantityType type,
         {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
-    resolveQuantity(count, languageCode, type,
-        zero: zero, one: one, two: two, few: few, many: many, other: other) ??
+    resolveQuantity(count, languageCode, type, zero: zero, one: one, two: two, few: few, many: many, other: other) ??
     '???';
 
 ///
@@ -154,7 +153,8 @@ void _flatten(Map data, String prefix, Map<String, String> out, int depth) {
 /// must not crash the caller: on failure it falls back to the compiled-in
 /// [baked] default, and finally to the raw [key]. A bad remote push therefore
 /// degrades to the built-in string instead of throwing out of a getter.
-String tr(Map<String, String> data, Map<String, String> baked, String key, Map<String, Object?> args, String languageCode) {
+String tr(
+    Map<String, String> data, Map<String, String> baked, String key, Map<String, Object?> args, String languageCode) {
   final loaded = data[key];
   if (loaded != null) {
     try {
