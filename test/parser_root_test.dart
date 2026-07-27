@@ -52,7 +52,8 @@ void main() {
     final path = write('fooMessages.i69n.jsonc', '// c\n["a", "b"]');
     await expectLater(
       JsoncParser(path).parse(),
-      throwsA(isA<Exception>().having((e) => e.toString(), 'message', allOf(contains('fooMessages'), contains('object')))),
+      throwsA(
+          isA<Exception>().having((e) => e.toString(), 'message', allOf(contains('fooMessages'), contains('object')))),
     );
   });
 
