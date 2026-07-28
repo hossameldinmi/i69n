@@ -1,6 +1,8 @@
 import 'package:i69n/src/runtime/interpreter.dart';
 import 'package:test/test.dart';
 
+import 'mock/gender.dart';
+
 void main() {
   group('interpret', () {
     test('plain text passes through', () {
@@ -65,6 +67,63 @@ void main() {
       );
     });
 
+    test('_select picks the case matching an enum arg', () {
+      expect(
+        interpret(r"I see ${_select(gender, male: 'Him', female: 'Her')}", {'gender': Gender.female}, 'en'),
+        'I see Her',
+      );
+    });
+
+    test('_select accepts a plain string arg', () {
+      expect(
+        interpret(r"${_select(gender, male: 'Him', female: 'Her')}", {'gender': 'male'}, 'en'),
+        'Him',
+      );
+    });
+
+    test('_select falls back to the other case', () {
+      expect(
+        interpret(r"${_select(gender, male: 'Him', other: 'Them')}", {'gender': Gender.unknown}, 'en'),
+        'Them',
+      );
+    });
+
+    test('_select without a matching case renders empty', () {
+      expect(
+        interpret(r"${_select(gender, male: 'Him')}", {'gender': Gender.female}, 'en'),
+        '',
+      );
+    });
+
+    test('_select with a missing arg falls back to the other case', () {
+      expect(
+        interpret(r"${_select(gender, male: 'Him', other: 'Them')}", {}, 'en'),
+        'Them',
+      );
+    });
+
+    test('_select case text interpolates other args', () {
+      expect(
+        interpret(
+          r"${_select(gender, male: 'his $count apples', female: 'her $count apples')}",
+          {'gender': Gender.male, 'count': 3},
+          'en',
+        ),
+        'his 3 apples',
+      );
+    });
+
+    test('a colon inside an arg string is not the name separator', () {
+      expect(
+        interpret(r"${_select(gender, male: 'note: his', other: 'note: theirs')}", {'gender': Gender.male}, 'en'),
+        'note: his',
+      );
+      expect(
+        interpret(r"${_plural(count, other: 'ratio: 1:2')}", {'count': 5}, 'en'),
+        'ratio: 1:2',
+      );
+    });
+
     test('unterminated \${ throws FormatException', () {
       expect(() => interpret(r'${oops', {}, 'en'), throwsFormatException);
     });
@@ -98,6 +157,14 @@ void main() {
       // count=1 selects `one`; the broken `other` branch must never be evaluated.
       expect(
         interpret(r"${_plural(count, one: 'ok', other: '${oops')}", {'count': 1}, 'en'),
+        'ok',
+      );
+    });
+
+    test('_select evaluates only the chosen branch (lazy)', () {
+      // gender=male selects `male`; the broken `female` branch must never run.
+      expect(
+        interpret(r"${_select(gender, male: 'ok', female: '${oops')}", {'gender': 'male'}, 'en'),
         'ok',
       );
     });

@@ -100,6 +100,18 @@ All three generate the same `.i69n.dart` output; pick whichever your team prefer
 Use one input format per basename within a directory — `foo.i69n.json` and
 `foo.i69n.jsonc` in the same folder would both generate `foo.i69n.dart` and collide.
 
+Escaping differs by format. YAML keeps the manual convention (you write `\"`
+yourself where the generated Dart needs it — see "Escaping special characters"
+below). JSON and JSONC values are **escaped automatically**: `"` and `\` are
+literal text, so plain JSON just works —
+
+    { "quotes": "Hello \"world\"!" }
+
+— renders `Hello "world"!`. Two Dart-isms survive inside JSON/JSONC values:
+`$name` interpolates a parameter (write `\\$` for a literal dollar sign), and the
+content of `${_plural(...)}` / `${_select(...)}` blocks is Dart expression
+territory, where the usual single-quote escaping applies (`'didn\\'t'`).
+
 Add `build_runner` as a dev_dependency and `i69n` as a dependency to `pubspec.yaml`:
 
     dependencies:
@@ -209,6 +221,55 @@ See also:
 
 * http://cldr.unicode.org/index/cldr-spec/plural-rules
 * https://www.unicode.org/cldr/charts/latest/supplemental/language_plural_rules.html
+
+## Branching on an enum
+
+Numbers get `_plural`. For everything else you branch on - grammatical gender,
+account type, delivery state - there is `_select`:
+
+    _i69n_import: package:my_app/gender.dart
+    
+    person:
+      sees(Gender gender): "I see ${_select(gender, male: 'him', female: 'her', other: 'them')}."
+      owns(Gender gender, int cnt): "${_select(gender, male: 'His', female: 'Her', other: 'Their')} ${_plural(cnt, one: 'apple', many: 'apples')}."
+
+    ExampleMessages m = ExampleMessages();
+    print(m.person.sees(Gender.female));    // I see her.
+    print(m.person.owns(Gender.male, 3));   // His apples.
+
+In the message you write `_select(value, case: 'text', ...)`: the first argument
+is the parameter to branch on, every other argument is one
+`<enum value name>: 'text'` case. Dart has no arbitrary named parameters, so at
+build time i69n rewrites that into a call to the runtime helper, turning the
+cases into a map:
+
+    // authored in the message
+    ${_select(gender, male: 'him', female: 'her', other: 'them')}
+    // generated Dart
+    ${i69n.select(gender, {'male': 'him', 'female': 'her', 'other': 'them'})}
+
+    String select(Object? value, Map<String, String> cases)
+
+Details worth knowing:
+
+* An enum matches by its `.name`. Any other value (a `String`, `bool`, `int`)
+  matches by `toString()`, so you can branch on those too. For a `bool` the
+  cases are simply `true` and `false`:
+
+      person:
+        status(bool online): "${_select(online, true: 'Online now', false: 'Last seen a while ago')}"
+
+      print(m.person.status(true));    // Online now
+      print(m.person.status(false));   // Last seen a while ago
+* `other:` is the fallback for values you did not list. Without it, an unlisted
+  value renders an empty string - a partially translated file never crashes.
+* Case texts can interpolate the message's own parameters and reuse other
+  messages, exactly like `_plural` cases.
+* Import the enum with the `_i69n_import` flag (see "Custom imports and custom
+  types" below), and repeat both the import and the message in each translation
+  file that needs to override the text.
+* i69n never reads your Dart source, so it cannot check that you covered every
+  enum value. A missing case falls back to `other:`, then to an empty string.
 
 ## How to use generated classes
 
@@ -493,36 +554,18 @@ generated `i69nRemoteData` / `i69nRemoteMessages` members are internal API that
 must be public so locale libraries can inherit them — don't use them directly.)
 
 Remote payloads use plain text with `$name` / `${name}` placeholders and the
-`_plural` / `_ordinal` / `_cardinal` forms — the same syntax as the build-time
-file. They must not reference other messages. A malformed template — or a plural
-that has no usable form for the given count — never crashes and never renders
-the `???` sentinel: the accessor falls back to the compiled-in default, then to
-the key itself.
+`_plural` / `_ordinal` / `_cardinal` / `_select` forms — the same syntax as the
+build-time file. They must not reference other messages. A malformed template —
+or a plural that has no usable form for the given count — never crashes and never
+renders the `???` sentinel: the accessor falls back to the compiled-in default,
+then to the key itself.
 
-# Input formats
-
-i69n reads two input formats, distinguished by extension:
-
-* `.i69n.yaml` — YAML (shown throughout this README).
-* `.i69n.json` — strict JSON.
-
-Both generate the same `.i69n.dart` output. Use one input format per basename
-within a directory — `foo.i69n.yaml` and `foo.i69n.json` in the same folder
-would both generate `foo.i69n.dart` and collide.
-
-Escaping differs by format. YAML keeps the manual convention described above
-(you write `\"` yourself where the generated Dart needs it). JSON values are
-**escaped automatically**: `"` and `\` are literal text, so plain JSON just
-works —
+A `_select` in a remote payload branches on the argument the caller passes, so a
+downloaded translation can change which cases exist:
 
 ```json
-{ "quotes": "Hello \"world\"!" }
+{"sees": "Vidím ${_select(gender, male: 'ho', female: 'ji', other: 'je')}."}
 ```
-
-— renders `Hello "world"!`. Two Dart-isms survive inside JSON values: `$name`
-interpolates a parameter (write `\\$` for a literal dollar sign), and the
-content of `${_plural(...)}` blocks is Dart expression territory, where the
-usual single-quote escaping applies (`'didn\\'t'`).
 
 # Credits
 

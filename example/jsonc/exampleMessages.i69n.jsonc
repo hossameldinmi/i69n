@@ -1,5 +1,7 @@
 {
   // Default (English) messages. JSONC lets us annotate translations inline.
+  // The Gender enum the _select messages below branch on:
+  "_i69n_import": "../gender.dart",
   "generic": {
     "_i69n": "flag",
     "ok": "OK",
@@ -16,5 +18,12 @@
   "apples": {
     "_apples(int cnt)": "${_plural(cnt, zero: 'no apples', one:'$cnt apple', many:'$cnt apples')}",
     "count(int cnt)": "You have eaten ${_apples(cnt)}."
+  },
+  /* _select branches on an enum value; `other` catches the rest. */
+  "person": {
+    "sees(Gender gender)": "I see ${_select(gender, male: 'him', female: 'her', other: 'them')}.",
+    "owns(Gender gender, int cnt)": "${_select(gender, male: 'His', female: 'Her', other: 'Their')} ${_plural(cnt, one: 'apple', many: 'apples')}.",
+    // Not enum-only: a bool matches by toString(), so the cases are true/false.
+    "status(bool online)": "${_select(online, true: 'Online now', false: 'Last seen a while ago')}"
   }
 }

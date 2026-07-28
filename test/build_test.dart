@@ -114,6 +114,41 @@ a: A
     expect(out, isNot(contains('i69n.ordinal(')));
   });
 
+  test('emits the _select helper and rewrites cases into a map literal', () {
+    final out = build({
+      'see(Gender gender)': "I see \${_select(gender, male: 'Him', female: 'Her')}",
+    });
+    expect(out, contains('i69n.select('));
+    expect(out, contains('String see(Gender gender) =>'));
+    expect(out, contains(r"""I see ${_select(gender, {'male': 'Him', 'female': 'Her'})}"""));
+  });
+
+  test('omits the _select helper when no message uses it', () {
+    final out = build({'a': 'A'});
+    expect(out, isNot(contains('i69n.select(')));
+  });
+
+  test('a message may use both _plural and _select', () {
+    final out = build({
+      'both(Gender gender, int n)':
+          "\${_select(gender, male: 'his', other: 'their')} \${_plural(n, one: 'apple', other: 'apples')}",
+    });
+    expect(out, contains('i69n.select('));
+    expect(out, contains('i69n.plural('));
+    // The formatter may wrap the map literal, so assert on its parts.
+    expect(out, contains(r'_select(gender, {'));
+    expect(out, contains(r"'male': 'his'"));
+    expect(out, contains(r"'other': 'their'"));
+    expect(out, contains(r"_plural(n, one: 'apple', other: 'apples')"));
+  });
+
+  test('a malformed _select fails the build', () {
+    expect(
+      () => build({'see(Gender gender)': "\${_select(gender, 'Him')}"}),
+      throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('_select'))),
+    );
+  });
+
   test('notraverse drops the dotted-key traverse block but keeps the map switch', () {
     final out = build({
       '_i69n': 'notraverse',
@@ -193,6 +228,26 @@ a: A
     final out = build({'_i69n': 'remote', 'a': 'A'});
     expect(out, contains('const Map<String, String> _baked'));
     expect(out, contains('void load(Map data)'));
+  });
+
+  test('a malformed _select in a remote source fails the build', () {
+    // The remote path bakes the authored template instead of rewriting it, but
+    // structural validation must still run — a duplicate case (or any malformed
+    // _select) must fail the build, not bake silently.
+    expect(
+      () => build({
+        '_i69n': 'remote',
+        'sees(Gender g)': "\${_select(g, male: 'Him', male: 'He')}",
+      }),
+      throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('duplicate'))),
+    );
+    expect(
+      () => build({
+        '_i69n': 'remote',
+        'sees(Gender g)': "\${_select(g, male:, other: 'Them')}",
+      }),
+      throwsA(isA<Exception>().having((e) => e.toString(), 'message', contains('missing its text'))),
+    );
   });
 
   test('nothrow on a parent is inherited by child classes', () {

@@ -1,3 +1,4 @@
+_i69n_import: ../gender.dart
 generic:
   _i69n: flag
   ok: OK
@@ -14,3 +15,8 @@ invoice:
 apples:
   _apples(int cnt): "${_plural(cnt, zero: 'no apples', one:'$cnt apple', many:'$cnt apples')}"
   count(int cnt): "You have eaten ${_apples(cnt)}."
+person:
+  sees(Gender gender): "I see ${_select(gender, male: 'him', female: 'her', other: 'them')}."
+  owns(Gender gender, int cnt): "${_select(gender, male: 'His', female: 'Her', other: 'Their')} ${_plural(cnt, one: 'apple', many: 'apples')}."
+  # _select is not enum-only - a bool matches by toString():
+  status(bool online): "${_select(online, true: 'Online now', false: 'Last seen a while ago')}"

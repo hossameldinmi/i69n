@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:i69n/src/formatters/json_parser.dart';
+import 'package:i69n/src/formatters/jsonc_parser.dart';
 import 'package:i69n/src/formatters/yaml_parser.dart';
 import 'package:test/test.dart';
 
@@ -47,10 +48,21 @@ void main() {
     await expectLater(YamlParser(path).parse(), throwsA(isA<Exception>()));
   });
 
+  test('a jsonc root that is a list is rejected by name', () async {
+    final path = write('fooMessages.i69n.jsonc', '// c\n["a", "b"]');
+    await expectLater(
+      JsoncParser(path).parse(),
+      throwsA(
+          isA<Exception>().having((e) => e.toString(), 'message', allOf(contains('fooMessages'), contains('object')))),
+    );
+  });
+
   test('a well-formed root still parses', () async {
     final jsonPath = write('fooMessages.i69n.json', '{"a": "A"}');
     final yamlPath = write('fooMessages.i69n.yaml', 'a: A\n');
+    final jsoncPath = write('fooMessages.i69n.jsonc', '{"a": "A"} // c');
     expect((await JsonParser(jsonPath).parse()).build(), contains('String get a => "A";'));
     expect((await YamlParser(yamlPath).parse()).build(), contains('String get a => "A";'));
+    expect((await JsoncParser(jsoncPath).parse()).build(), contains('String get a => "A";'));
   });
 }

@@ -7,8 +7,11 @@ include: package:lints/core.yaml
 #     - camel_case_types
 
 analyzer:
-#   exclude:
-#     - path/to/excluded/files/**
+  # Generated message bundles are machine-produced (they carry their own
+  # ignore_for_file header) and are verified by the test suite, not the linter.
+  exclude:
+    - "**/*.i69n.dart"
+    - "**/*.i69n.g.dart"
 
 formatter:
   page_width: 120

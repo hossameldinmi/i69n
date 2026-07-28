@@ -48,6 +48,16 @@ String ordinal(int count, String languageCode,
       zero: zero, one: one, two: two, few: few, many: many, other: other);
 }
 
+///
+/// Picks the case matching [value] out of [cases]. An [Enum] resolves by its
+/// `.name`, any other value by `toString()`. Falls back to the `other` case,
+/// then to the empty string.
+///
+String select(Object? value, Map<String, String> cases) {
+  final key = value is Enum ? value.name : (value?.toString() ?? '');
+  return cases[key] ?? cases['other'] ?? '';
+}
+
 Map<String, CategoryResolver> _resolverRegistry = {
   'en': en.quantityResolver,
   'cs': cs.quantityResolver,

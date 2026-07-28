@@ -1,4 +1,5 @@
 import 'package:test/test.dart';
+import 'mock/gender.dart';
 import 'mock/remoteMessages.i69n.dart';
 import 'mock/remoteMessages_cs.i69n.dart';
 
@@ -38,6 +39,23 @@ void main() {
       // The remote template only covers `two`; for count=3 nothing resolves.
       // The user must see the baked default, never the ??? sentinel.
       expect(m.apples(3), '3 apples');
+    });
+
+    test('a baked _select branches on the enum argument', () {
+      final m = RemoteMessages();
+      expect(m.sees(Gender.male), 'I see Him');
+      expect(m.sees(Gender.female), 'I see Her');
+      expect(m.sees(Gender.unknown), 'I see Them');
+    });
+
+    test('a loaded _select template overrides the baked one', () {
+      final m = RemoteMessages();
+      m.load({
+        'sees': r"Vidím ${_select(gender, male: 'jeho', female: 'ji', other: 'je')}",
+      });
+      expect(m.sees(Gender.male), 'Vidím jeho');
+      expect(m.sees(Gender.female), 'Vidím ji');
+      expect(m.sees(Gender.other), 'Vidím je');
     });
 
     test('load reaches nested bundles and operator[] traverses', () {

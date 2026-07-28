@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:i69n/src/constants.dart';
 import 'package:i69n/src/shared/file_metadata.dart';
+import 'package:i69n/src/utils/select_rewriter.dart';
 import 'package:i69n/src/utils/string_extensions.dart';
 
 class Import extends Equatable {
@@ -199,6 +200,18 @@ class Node extends Equatable {
     return value is NodeListNodeValue && (value as NodeListNodeValue).hasCardinalNode;
   }
 
+  /// Matches an actual `_select(` call, not an identifier that merely ends in
+  /// one. Detection is deliberately independent of the [NodeValue] subtype, so a
+  /// message may hold both a grammatical call and a `_select` call.
+  static final _selectCall = RegExp(r'(^|[^a-zA-Z0-9_$])_select\(');
+
+  bool get hasSelectNode {
+    final v = value;
+    if (v is NodeListNodeValue) return v.hasSelectNode;
+    final raw = v.value;
+    return raw is String && _selectCall.hasMatch(raw);
+  }
+
   /// Whether this node renders as a Dart class (i.e. it has child nodes).
   bool get isClassNode => value is NodeListNodeValue;
 
@@ -260,7 +273,13 @@ class Node extends Equatable {
         if (child.isClassNode) {
           walk(child);
         } else {
-          out[child.key.messagePath] = escapeTemplate(child.value.value.toString());
+          final raw = child.value.value.toString();
+          // The remote path bakes the authored template verbatim rather than
+          // rewriting it, so validate a malformed `_select` here — otherwise it
+          // would build silently and misrender at runtime instead of failing
+          // the build like the non-remote path does.
+          validateSelectCalls(raw);
+          out[child.key.messagePath] = escapeTemplate(raw);
         }
       }
     }
@@ -334,7 +353,9 @@ class Node extends Equatable {
               "String get ${childKey.key} => i69n.tr(i69nRemoteMessages, _baked, '$mp', const {}, _languageCode);");
         }
       } else {
-        final literal = escape(child.value.value.toString());
+        // The authored `_select(g, male: 'Him')` form is not valid Dart - its
+        // case names are arbitrary. Rewrite it into a map literal.
+        final literal = rewriteSelectCalls(escape(child.value.value.toString()));
         final childKey = child.key;
         if (childKey is ParametrizedNodeKey) {
           final params = childKey.parameters.map((p) => '${p.type} ${p.name}').join(', ');
@@ -456,6 +477,8 @@ class NodeListNodeValue extends NodeValue<List<Node>> {
   bool get hasCardinalNode => value.any((e) => e.hasCardinalNode);
 
   bool get hasOrdinalNode => value.any((e) => e.hasOrdinalNode);
+
+  bool get hasSelectNode => value.any((e) => e.hasSelectNode);
 }
 
 class ConfigNode extends Node {

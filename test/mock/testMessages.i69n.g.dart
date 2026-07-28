@@ -3,6 +3,7 @@
 // dart format off
 import 'package:i69n/i69n.dart' as i69n;
 import 'dart:io';
+import 'gender.dart';
 
 String get _languageCode => 'sk';
 String get _localeName => 'en';
@@ -11,12 +12,14 @@ String _plural(int count, {String? zero, String? one, String? two, String? few, 
     i69n.plural(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
 String _ordinal(int count, {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
     i69n.ordinal(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
+String _select(Object? value, Map<String, String> cases) => i69n.select(value, cases);
 
 class TestMessages implements i69n.I69nMessageBundle {
   const TestMessages();
   GenericTestMessages get generic => GenericTestMessages(this);
   InvoiceTestMessages get invoice => InvoiceTestMessages(this);
   ApplesTestMessages get apples => ApplesTestMessages(this);
+  PersonTestMessages get person => PersonTestMessages(this);
   FriendsTestMessages get friends => FriendsTestMessages(this);
   Object operator [](String key) {
     var index = key.indexOf('.');
@@ -30,6 +33,8 @@ class TestMessages implements i69n.I69nMessageBundle {
         return invoice;
       case 'apples':
         return apples;
+      case 'person':
+        return person;
       case 'friends':
         return friends;
       default:
@@ -110,6 +115,34 @@ class ApplesTestMessages implements i69n.I69nMessageBundle {
         return quotes;
       case 'quotes2':
         return quotes2;
+      default:
+        return key;
+    }
+  }
+}
+
+class PersonTestMessages implements i69n.I69nMessageBundle {
+  final TestMessages _parent;
+  const PersonTestMessages(this._parent);
+  String sees(Gender gender) => "I see ${_select(gender, {'male': 'Him', 'female': 'Her', 'other': 'Them'})}";
+  String owns(Gender gender, int cnt) => "${_select(gender, {
+            'male': 'his',
+            'female': 'her',
+            'other': 'their'
+          })} ${_plural(cnt, one: '$cnt apple', many: '$cnt apples')}";
+  String status(bool online) => "${_select(online, {'true': 'Online', 'false': 'Offline'})}";
+  Object operator [](String key) {
+    var index = key.indexOf('.');
+    if (index > 0) {
+      return (this[key.substring(0, index)] as i69n.I69nMessageBundle)[key.substring(index + 1)];
+    }
+    switch (key) {
+      case 'sees':
+        return sees;
+      case 'owns':
+        return owns;
+      case 'status':
+        return status;
       default:
         return key;
     }

@@ -1,5 +1,5 @@
 {
-  "_i69n_import": "dart:io",
+  "_i69n_import": "dart:io,gender.dart",
   "_i69n_language": "sk",
   "generic": {
     "_i69n": "flag",
@@ -23,6 +23,11 @@
     "anotherProblem": "here\nthere",
     "quotes": "Hello \"world\"!",
     "quotes2": "Hello \"world\"!"
+  },
+  "person": {
+    "sees(Gender gender)": "I see ${_select(gender, male: 'Him', female: 'Her', other: 'Them')}",
+    "owns(Gender gender, int cnt)": "${_select(gender, male: 'his', female: 'her', other: 'their')} ${_plural(cnt, one: '$cnt apple', many: '$cnt apples')}",
+    "status(bool online)": "${_select(online, true: 'Online', false: 'Offline')}"
   },
   "friends": {
     "michael": {

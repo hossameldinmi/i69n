@@ -2,18 +2,21 @@
 // GENERATED FILE, do not edit!
 // dart format off
 import 'package:i69n/i69n.dart' as i69n;
+import '../gender.dart';
 
 String get _languageCode => 'en';
 String get _localeName => 'en';
 
 String _plural(int count, {String? zero, String? one, String? two, String? few, String? many, String? other}) =>
     i69n.plural(count, _languageCode, zero: zero, one: one, two: two, few: few, many: many, other: other);
+String _select(Object? value, Map<String, String> cases) => i69n.select(value, cases);
 
 class ExampleMessages implements i69n.I69nMessageBundle {
   const ExampleMessages();
   GenericExampleMessages get generic => GenericExampleMessages(this);
   InvoiceExampleMessages get invoice => InvoiceExampleMessages(this);
   ApplesExampleMessages get apples => ApplesExampleMessages(this);
+  PersonExampleMessages get person => PersonExampleMessages(this);
   Object operator [](String key) {
     var index = key.indexOf('.');
     if (index > 0) {
@@ -26,6 +29,8 @@ class ExampleMessages implements i69n.I69nMessageBundle {
         return invoice;
       case 'apples':
         return apples;
+      case 'person':
+        return person;
       default:
         return key;
     }
@@ -87,6 +92,34 @@ class ApplesExampleMessages implements i69n.I69nMessageBundle {
         return _apples;
       case 'count':
         return count;
+      default:
+        return key;
+    }
+  }
+}
+
+class PersonExampleMessages implements i69n.I69nMessageBundle {
+  final ExampleMessages _parent;
+  const PersonExampleMessages(this._parent);
+  String sees(Gender gender) => "I see ${_select(gender, {'male': 'him', 'female': 'her', 'other': 'them'})}.";
+  String owns(Gender gender, int cnt) => "${_select(gender, {
+            'male': 'His',
+            'female': 'Her',
+            'other': 'Their'
+          })} ${_plural(cnt, one: 'apple', many: 'apples')}.";
+  String status(bool online) => "${_select(online, {'true': 'Online now', 'false': 'Last seen a while ago'})}";
+  Object operator [](String key) {
+    var index = key.indexOf('.');
+    if (index > 0) {
+      return (this[key.substring(0, index)] as i69n.I69nMessageBundle)[key.substring(index + 1)];
+    }
+    switch (key) {
+      case 'sees':
+        return sees;
+      case 'owns':
+        return owns;
+      case 'status':
+        return status;
       default:
         return key;
     }
